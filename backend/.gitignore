@@ -1,0 +1,15 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+# Prisma generated files
+/prisma/schema.prisma
+/prisma/.env
+
+# Logs
+*.log
+
+# Dependency directories
+.prisma/
+
+generated/
