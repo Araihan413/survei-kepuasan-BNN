@@ -1,13 +1,13 @@
-const prisma = require('../db')
+const prisma = require('../config')
 
 const findQuestions = async () => {
-  const questions = await prisma.surveys.findMany()
+  const questions = await prisma.question.findMany()
 
   return questions
 }
 
 const findQuestionById = async (id) => {
-  const question = await prisma.surveys.findUnique({
+  const question = await prisma.question.findUnique({
     where: {
       survey_id: id
     }
@@ -17,7 +17,7 @@ const findQuestionById = async (id) => {
 }
 
 const insertQuestion = async (newDataQuestion) => {
-  const newQuestion = await prisma.surveys.create({
+  const newQuestion = await prisma.question.create({
     data: {
       title: newDataQuestion.title,
       description: newDataQuestion.description
@@ -27,14 +27,14 @@ return newQuestion
 }
 
 
-const updateQuestion = async (id, questionData) => {
-  const question = await prisma.surveys.update({
+const updateQuestion = async (id, dataQuestion) => {
+  const question = await prisma.question.update({
     where: {
       survey_id: id
     },
     data :{
-      title: questionData.title,
-      description:questionData.description
+      title: dataQuestion.title,
+      description: dataQuestion.description
     }
   })
 
@@ -42,7 +42,7 @@ const updateQuestion = async (id, questionData) => {
 }
 
 const deleteQuestion = async (id) => {
-  const question = await prisma.surveys.delete({
+  const question = await prisma.question.delete({
     where: {
       survey_id: id
     }
