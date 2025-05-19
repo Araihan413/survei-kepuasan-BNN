@@ -7,11 +7,48 @@ const {
   getUserById,
   updateUserById,
   createUser,
-  deleteUserById
+  deleteUserById,
+  updatePasswordById
 } = require('./users.service');
 
+router.get('/profile', verifyToken, async (req, res) => {
+  try {
+    const dataProfil  = await getUserById(req.user.user_id)
 
-router.get('/', async (req, res) => {
+    res.status(200).json({
+      status: 'success',
+      message: 'Profil user berhasil diambil',
+      data: dataProfil
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+router.post('/ubah-password', verifyToken, async (req, res) => {
+  try {
+    const dataUser = req.body;
+    const {password, newPassword, confirmNewPassword} = dataUser
+    await updatePasswordById(req.user.user_id, {password, newPassword, confirmNewPassword})
+    res.status(200).json({
+      status: 'success',
+      message: 'Password Berhasil diubah',
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+
+router.get('/', verifyToken, async (req, res) => {
   try {
 
     const users = await getAllUser()
@@ -31,7 +68,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
 

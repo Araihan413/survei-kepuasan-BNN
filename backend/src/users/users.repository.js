@@ -45,8 +45,20 @@ const findUserByUsername = async (username) => {
 return user
 }
 
-const updateUser = async (id, dataUser) => {
+const findUserByEmail = async (email) => {
+  const user = await prisma.users.findUnique({
+    where: {
+      email: email
+    },
+    select: {
+      user_id: true,
+      email: true
+    }
+  })
+return user
+}
 
+const updateUser = async (id, dataUser) => {
   const user = await prisma.users.update({
     where: {
       user_id: id
@@ -98,6 +110,7 @@ return user
 module.exports = {
   findUsers,
   findUsersById,
+  findUserByEmail,
   updateUser,
   insertUser,
   deleteUser,

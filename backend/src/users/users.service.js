@@ -3,6 +3,7 @@ const { findUsers,
   updateUser,
   insertUser,
   deleteUser } = require('./users.repository')
+  const utilsHash = require('../utils/hash')
 
 
   const getAllUser = async () => {
@@ -25,6 +26,23 @@ const { findUsers,
     return user
   }
 
+  const updatePasswordById = async (id, passwordUser) => {
+    const {password, newPassword, confirmNewPassword} = passwordUser
+
+    if (password === newPassword) throw new Error('password tidak boleh sama')
+    if (newPassword !== confirmNewPassword) throw new Error('password dan konfirmasi password tidak sama')
+
+    const user = await getUserById(id)
+
+    const isMatch = await utilsHash.comparePassword(password, user.password)
+    if (!isMatch) throw new Error('Password salah')
+    
+    const hashPassword = await utilsHash.hashPassword(newPassword)
+    const newPasswordUser = {password: hashPassword}
+    const updatePasswordUser = await updateUser(id, newPasswordUser)
+    return updatePasswordUser
+  }
+
   const createUser = async (newDataUser) => {
     const newUser = await insertUser(newDataUser)
     return newUser
@@ -40,6 +58,7 @@ const { findUsers,
     getAllUser,
     getUserById,
     updateUserById,
+    updatePasswordById,
     createUser,
     deleteUserById
   }

@@ -18,4 +18,23 @@ const verifyToken = async (req, res, next) => {
   }
 }
 
-module.exports = {verifyToken}
+const verifyResetToken = async (req, res, next) => {
+
+  const token = req.query.token
+  if (!token) return res.status(401).json({status: "Unauthorized", message: "invalid token"})
+
+  try {
+    const decoded = utilsJwt.verifyResetToken(token)
+    req.user = decoded
+    next()
+  } catch (error) {
+    res.status(401).json({
+      status: "Unauthorized",
+      message: "Something went wrong on the server",  
+      error: error.message
+    })
+  }
+
+}
+
+module.exports = {verifyToken, verifyResetToken}
