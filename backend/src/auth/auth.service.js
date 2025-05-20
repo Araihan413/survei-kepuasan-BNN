@@ -22,14 +22,14 @@ const authLogin = async (username, password) => {
 }
 
 const authRegister = async (dataUser) => {
-  const {user_id,name, username, password, confirmPassword, role, email} = dataUser 
+  const {userId, name, username, password, confirmPassword, role, email} = dataUser 
 
   const user = await User.findUserByUsername(username)
   if (user) throw new Error('username sudah terdaftar')
   if (password !== confirmPassword) throw new Error('password tidak sama')
   const hashPassword = await utilsHash.hashPassword(password)
 
-  const createUser = await User.insertUser({user_id: user_id, name: name, username: username, password: hashPassword, role: role, email: email})
+  const createUser = await User.insertUser({userId: userId, name: name, username: username, password: hashPassword, role: role, email: email})
   return createUser
 }
 
@@ -46,13 +46,13 @@ const authForgetPassword = async (email) => {
   return resetPasswordLink
 }
 
-const authResetPassword = async (user_id, password, confirmpassword) => {
-  const user = await User.findUsersById(user_id)
+const authResetPassword = async (userId, password, confirmpassword) => {
+  const user = await User.findUsersById(userId)
   if (!user) throw new Error('user tidak ditemukan')
   if (password !== confirmpassword) throw new Error('password tidak sama')
   const hashPassword = await utilsHash.hashPassword(password)
 
-  const updatePassword = await User.updateUser(user_id, {password: hashPassword})
+  const updatePassword = await User.updateUser(userId, {password: hashPassword})
   return updatePassword
 }
 

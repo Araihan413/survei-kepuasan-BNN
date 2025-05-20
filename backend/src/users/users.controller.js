@@ -13,7 +13,7 @@ const {
 
 router.get('/profile', verifyToken, async (req, res) => {
   try {
-    const dataProfil  = await getUserById(req.user.user_id)
+    const dataProfil  = await getUserById(req.user.userId)
 
     res.status(200).json({
       status: 'success',
@@ -29,11 +29,11 @@ router.get('/profile', verifyToken, async (req, res) => {
   }
 })
 
-router.post('/ubah-password', verifyToken, async (req, res) => {
+router.post('/change-password', verifyToken, async (req, res) => {
   try {
     const dataUser = req.body;
     const {password, newPassword, confirmNewPassword} = dataUser
-    await updatePasswordById(req.user.user_id, {password, newPassword, confirmNewPassword})
+    await updatePasswordById(req.user.userId, {password, newPassword, confirmNewPassword})
     res.status(200).json({
       status: 'success',
       message: 'Password Berhasil diubah',

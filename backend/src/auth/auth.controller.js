@@ -30,9 +30,9 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
 try {
-  const {user_id,name, username, password, confirmPassword, role, email} = req.body;
+  const {userId, name, username, password, confirmPassword, role, email} = req.body;
 
-  const registerUser = await authService.authRegister({user_id,name, username, password, confirmPassword, role, email})
+  const registerUser = await authService.authRegister({userId, name, username, password, confirmPassword, role, email})
 
   res.status(201).json({
     status: 'success',
@@ -68,9 +68,9 @@ const forgetPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   const {password, confirmPassword } = req.body
-  const user_id = req.user.user_id
+  const userId = req.user.userId
   try {
-    const resetPasswordLink = await authService.authResetPassword(user_id, password, confirmPassword)
+    const resetPasswordLink = await authService.authResetPassword(userId, password, confirmPassword)
     res.status(200).json({
       status: 'success',
       message: 'Password berhasil direset',

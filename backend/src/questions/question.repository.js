@@ -9,7 +9,7 @@ const findQuestions = async () => {
 const findQuestionById = async (id) => {
   const question = await prisma.question.findUnique({
     where: {
-      survey_id: id
+      questionId: id
     }
   })
 
@@ -30,7 +30,7 @@ return newQuestion
 const updateQuestion = async (id, dataQuestion) => {
   const question = await prisma.question.update({
     where: {
-      survey_id: id
+      questionId: id
     },
     data :{
       title: dataQuestion.title,
@@ -44,7 +44,7 @@ const updateQuestion = async (id, dataQuestion) => {
 const deleteQuestion = async (id) => {
   const question = await prisma.question.delete({
     where: {
-      survey_id: id
+      questionId: id
     }
   })
 
