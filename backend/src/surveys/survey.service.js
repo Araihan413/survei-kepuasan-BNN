@@ -1,32 +1,75 @@
 const surveyRepository = require('./survey.repository')
 
-const getAllSurvey = async () => {
-  const survey = await surveyRepository.getSurveys()
-  if (!survey) throw Error('data survey tidak ditemukan')
+const getAllQuestionInSurvey = async () => {
+  const survey = await surveyRepository.findQuestionsInSurvey()
   return survey
 }
 
-const getSurveyById = async (id) => {
-  const survey = surveyRepository.getSurveyById(id)
+const getAllQuestionIsActive = async (isActive) => {
+  const survey = await surveyRepository.findQuestionsInSurvey()
+  const questionActive = survey.question.filter(question => question.isActive === isActive)
+  return questionActive
+}
+
+const getAllSurvey = async () => {
+  const survey = await surveyRepository.findSurveys()
+  return survey
+}
+
+const getDetailSurveyById = async (id) => {
+  const survey = await surveyRepository.findDetaiSurvey(id)
   if (!survey) throw Error('data survey tidak ditemukan')
   return survey
 }
 
 const insertSurvey = async (dataSurvey) => {
-  const survey = await surveyRepository.insertsurvey(dataSurvey)
+  const requiredFields = ['title', 'createBy', 'orderPage']
+
+  for (const field of requiredFields) {
+    if (!dataSurvey[field]) {
+      throw new Error(`Data field "${field}" wajib dikirim`)
+    }
+  }
+  const survey = await surveyRepository.insertSurvey(dataSurvey)
+  return survey
+}
+
+const updateDataSurveyById = async (id, dataSurvey) => {
+  const dataUpdate = {}
+
+  if (typeof dataSurvey.title === 'string') {
+    dataUpdate.title = dataSurvey.title
+  }
+
+  if (typeof dataSurvey.description === 'string') {
+    dataUpdate.description = dataSurvey.description
+  }
+
+  if (typeof dataSurvey.isPublished === 'boolean') {
+    dataUpdate.isPublished = dataSurvey.isPublished
+  }
+
+  // Cek apakah ada data yang akan diupdate
+  if (Object.keys(dataUpdate).length === 0) {
+    throw Error('Tidak ada data yang dapat diupdate')
+  }
+
+  const survey = await surveyRepository.updateSurveyById(id, dataUpdate)
   return survey
 }
 
 const deleteSurveyById = async (id) => {
-  const survey = await surveyRepository.deleteSurvey(id)
-  if (!survey) throw Error('data survey tidak ditemukan')
+  await getDetailSurveyById(id)
+  const survey = await surveyRepository.deleteSurveyById(id)
   return survey
 }
 
-const updateSurveyById = async (id, dataSurvey) => {
-  await getSurveyById(id)
-  const survey = await surveyRepository.updateSurvey(id, dataSurvey)
-  return survey
+module.exports = { 
+  getAllQuestionInSurvey,
+  getAllQuestionIsActive,
+  getAllSurvey,
+  getDetailSurveyById,
+  insertSurvey,
+  updateDataSurveyById,
+  deleteSurveyById
 }
-
-module.exports = { getAllSurvey, getSurveyById, insertSurvey, deleteSurveyById, updateSurveyById }

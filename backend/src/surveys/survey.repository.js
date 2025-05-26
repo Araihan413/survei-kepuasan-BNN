@@ -1,28 +1,63 @@
 const prisma = require('../config')
-const { insertQuestion } = require('../questions/question.repository')
 
-const findSurveys = async () => {
-  const surveys = await prisma.survey.findMany()
+// ? untuk menampilkan daftar pertanyaan berdasarkan survei dan menampikan pertanyaan yang active
+const findQuestionsInSurvey = async () => {
+  const surveys = await prisma.survey.findMany({
+    select: {
+      surveyId: true,
+      title: true,
+      question: {
+        select: {
+          questionId: true,
+          questionText: true,
+          displayOrder: true,
+          isActive: true
+        },
+        orderBy: {
+          displayOrder: 'asc'
+        }
+      },
+      orderBy: {
+        orderPage: 'asc'
+      }
+    }
+  })
   return surveys
 }
 
-const findSurveyById = async (id) => {
+// ? untuk menampilkan daftar survei di menu survey
+const findSurveys = async () => {
+  const surveys = await prisma.survey.findMany({
+    select: {
+      surveyId: true,
+      title: true,
+      isPublished: true,
+      orderPage: true,
+      createdAt: true,
+    },
+    orderBy: {
+      orderPage: 'asc'
+    }
+  })
+  return surveys
+}
+
+
+// ? untuk menampikan data detail survei di halaman survei
+const findDetaiSurvey = async (id) => {
   const survey = await prisma.survey.findUnique({
     where: {
       surveyId: id
-    }
-  })
-  return survey
-}
-
-const insertsurvey = async (id, dataSurvey) => {
-  const survey = await prisma.survey.create({
-    data: {
-      title: dataSurvey.title,
-      description: dataSurvey.description,
-      questions: {
-        connect: {
-          questionId: id
+    }, select: {
+      surveyId: true,
+      title: true,
+      description: true,
+      isPublished: true,
+      createdAt: true,
+      updatedAt: true,
+      _count: {
+        select: {
+          question: true
         }
       }
     }
@@ -30,29 +65,56 @@ const insertsurvey = async (id, dataSurvey) => {
   return survey
 }
 
-const deleteSurvey = async (id) => {
-  const survey = await prisma.survey.delete({
+// ? untuk update data di halaman survei
+const updateSurveyById = async (id, dataSurvey) => {
+  const survey = await prisma.survey.update({
     where: {
       surveyId: id
+    }, 
+    data: dataSurvey,
+    select: {
+      surveyId: true,
+      title: true,
+      description: true,
+      isPublished: true,
+      updatedAt: true
     }
   })
   return survey
 }
 
-const updateSurvey = async (id, dataSurvey) => {
-  const survey = await prisma.survey.update({
+// ? untuk hapus data di halaman survei
+const deleteSurveyById = async (id) => {
+  const survey = await prisma.survey.delete({
     where: {
       surveyId: id
-    },
-    data: dataSurvey
+    }, 
+    select: {
+      surveyId: true,
+      title: true
+    }
+  })
+  return survey
+}
+
+// ? untuk insert data di halaman survei
+const insertSurvey = async (dataSurvey) => {
+  const survey = await prisma.survey.create({
+    data: {
+      title: dataSurvey.title,
+      description: dataSurvey.description,
+      createdBy: dataSurvey.createdBy,
+      orderPage: dataSurvey.orderPage
+    }
   })
   return survey
 }
 
 module.exports = {
+  findQuestionsInSurvey,
   findSurveys,
-  findSurveyById,
-  insertsurvey,
-  deleteSurvey,
-  updateSurvey
+  findDetaiSurvey,
+  deleteSurveyById,
+  updateSurveyById,
+  insertSurvey
 }

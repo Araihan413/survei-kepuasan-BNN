@@ -1,61 +1,65 @@
 const prisma = require('../config')
 
-const findQuestions = async () => {
-  const questions = await prisma.question.findMany()
-
-  return questions
-}
-
-const findQuestionById = async (id) => {
-  const question = await prisma.question.findUnique({
+const findQuestionById = (id) => {
+  const question = prisma.question.findUnique({
     where: {
       questionId: id
     }
   })
-
   return question
 }
 
-const insertQuestion = async (newDataQuestion) => {
-  const newQuestion = await prisma.question.create({
+const insertQuestion = (newDataQuestion) => {
+  const newQuestion = prisma.question.create({
     data: {
-      title: newDataQuestion.title,
-      description: newDataQuestion.description
+      surveyId: newDataQuestion.surveyId,
+      questionText: newDataQuestion.questionText,
+      questionType: newDataQuestion.questionType,
+      isRequired: newDataQuestion.isRequired,
+      displayOrder: newDataQuestion.displayOrder,
+      createdBy: newDataQuestion.createdBy
     }
   })
-return newQuestion
+  return newQuestion
 }
 
-
-const updateQuestion = async (id, dataQuestion) => {
-  const question = await prisma.question.update({
+const updateQuestionById = (id, questionData) => {
+  const question = prisma.question.update({
     where: {
       questionId: id
     },
-    data :{
-      title: dataQuestion.title,
-      description: dataQuestion.description
+    data: questionData,
+    select: {
+      questionId: true,
+      surveyId: true,
+      questionText: true,
+      questionType: true,
+      isRequired: true,
+      displayOrder: true,
+      createdBy: true
     }
   })
-
   return question
 }
 
-const deleteQuestion = async (id) => {
-  const question = await prisma.question.delete({
+const deleteQuestionById = (id) => {
+  const question = prisma.question.delete({
     where: {
       questionId: id
+    },
+    select: {
+      questionId: true,
+      questionText: true,
+      surveyId: true
     }
   })
-
   return question
 }
 
 
 module.exports = {
-  findQuestions,
   findQuestionById,
   insertQuestion,
-  updateQuestion,
-  deleteQuestion
+  updateQuestionById,
+  deleteQuestionById
 }

@@ -1,0 +1,61 @@
+
+const dashboardService = require('./dashboard.service')
+const express = require('express');
+const router = express.Router();
+
+router.get('/', async (req, res) => {
+  try {
+    const {dateAgo, year} = req.query
+    const data = await dashboardService.getDashboard(dateAgo, year)
+    res.status(200).json({
+      status: 'success',
+      message: 'Data dashboard berhasil diambil',
+      data: data
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+router.get('/countRespondents/:year', async (req, res) => {
+  try {
+    const serviceId = req.query.serviceId || null;
+    const {year} = req.params
+    const data = await dashboardService.getRespondenByYear(year, serviceId)
+    res.status(200).json({
+      status: 'success',
+      message: 'Data dashboard berhasil diambil',
+      data: data
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+router.get('/avgScore', async (req, res) => {
+  try {
+    const {dateAgo} = req.query
+    const data = await dashboardService.getAvgScoreSurvey(dateAgo)
+    res.status(200).json({
+      status: 'success',
+      message: 'Data dashboard berhasil diambil',
+      data: data
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+module.exports = router

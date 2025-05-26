@@ -2,18 +2,11 @@ const express = require('express');
 const router = express.Router();
 const {verifyToken} = require('../middleware/auth.middleware')
 const {requireRole} = require('../middleware/role.middleware')
-const {
-  getAllUser,
-  getUserById,
-  updateUserById,
-  createUser,
-  deleteUserById,
-  updatePasswordById
-} = require('./users.service');
+const userService = require('./users.service');
 
 router.get('/profile', verifyToken, async (req, res) => {
   try {
-    const dataProfil  = await getUserById(req.user.userId)
+    const dataProfil  = await  userService.getUserById(req.user.userId)
 
     res.status(200).json({
       status: 'success',
@@ -33,7 +26,7 @@ router.post('/change-password', verifyToken, async (req, res) => {
   try {
     const dataUser = req.body;
     const {password, newPassword, confirmNewPassword} = dataUser
-    await updatePasswordById(req.user.userId, {password, newPassword, confirmNewPassword})
+    await  userService.updatePasswordById(req.user.userId, {password, newPassword, confirmNewPassword})
     res.status(200).json({
       status: 'success',
       message: 'Password Berhasil diubah',
@@ -51,7 +44,7 @@ router.post('/change-password', verifyToken, async (req, res) => {
 router.get('/', verifyToken, async (req, res) => {
   try {
 
-    const users = await getAllUser()
+    const users = await  userService.getAllUser()
 
     res.status(200).json({
       status: 'success',
@@ -72,7 +65,7 @@ router.get('/:id', verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
 
-    const user = await getUserById(userId)
+    const user = await  userService.getUserById(userId)
     res.status(200).json({
       status: 'success',
       message: 'data user berhasil diambil',
@@ -90,7 +83,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
   try {
     const dataUser = req.body;
-    const user = await createUser(dataUser)
+    const user = await  userService.createUser(dataUser)
     res.status(201).json({
       status: 'success',
       message: 'data user berhasil dibuat',
@@ -109,7 +102,7 @@ router.patch('/:id', verifyToken, async (req, res) => {
   try {
     const {id} = req.params;
     const dataUser = req.body;
-    const user = await updateUserById(id, dataUser)
+    const user = await  userService.updateUserById(id, dataUser)
     res.status(200).json({
       status: 'success',
       message: 'data user berhasil diupdate',
@@ -127,7 +120,7 @@ router.patch('/:id', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const {id} = req.params;
-    await deleteUserById(id)
+    await  userService.deleteUserById(id)
     res.status(200).json({
       status: 'success',
       message: 'data user berhasil dihapus',

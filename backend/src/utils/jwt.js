@@ -1,15 +1,15 @@
 const jwt = require('jsonwebtoken')
 
 const generateAccessToken = (user) => {
- return jwt.sign({userId: user.user_id, username: user.username, role: user.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'})
+ return jwt.sign({userId: user.userId, username: user.username, role: user.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'})
 }
 
 const generateRefreshToken = (user) => {
-  return jwt.sign({userId: user.user_id, username: user.username, role: user.role}, process.env.REFRES_TOKEN_SECRET, {expiresIn: '4h'})
+  return jwt.sign({userId: user.userId, username: user.username, role: user.role}, process.env.REFRES_TOKEN_SECRET, {expiresIn: '4h'})
 }
 
 const generateResetPasswordToken = (user) => {
-  return jwt.sign({userId: user.user_id, email: user.email}, process.env.RESET_PASSWORD_TOKEN_SECRET, {expiresIn: '15m'})
+  return jwt.sign({userId: user.userId, email: user.email}, process.env.RESET_PASSWORD_TOKEN_SECRET, {expiresIn: '15m'})
 }
 
 const verifyToken = (token) => {

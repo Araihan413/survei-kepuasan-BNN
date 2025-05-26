@@ -47,7 +47,7 @@ const authForgetPassword = async (email) => {
 }
 
 const authResetPassword = async (userId, password, confirmpassword) => {
-  const user = await User.findUsersById(userId)
+  const user = await User.findUserById(userId)
   if (!user) throw new Error('user tidak ditemukan')
   if (password !== confirmpassword) throw new Error('password tidak sama')
   const hashPassword = await utilsHash.hashPassword(password)

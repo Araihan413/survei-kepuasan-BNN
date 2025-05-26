@@ -1,10 +1,11 @@
 const FormField = (proms) => {
-  const { name, label, type = 'text', placeholder = 'Masukkan data' } = proms
+  const { name, label = "", type = 'text', placeholder = 'Masukkan data', icon: Icon = null } = proms
   return (
     <>
-      <div className="flex flex-col">
-        <label htmlFor={name}>{label}</label>
-        <input className="border-1 rounded-sm px-2 py-1 text-sm" id={name} type={type} placeholder={placeholder} />
+      <div className="flex flex-col relative ">
+        {label && <label htmlFor={name}>{label}</label>}
+        {Icon && <Icon className="absolute opacity-90 left-3 top-1/2 -translate-y-1/2 text-[#5d5d5d] text-xl" />}
+        <input className="pl-10 border-1 pr-3 py-4 text-sm outline-none shadow-md rounded-2xl border-gray-300/50" id={name} type={type} placeholder={placeholder} />
       </div>
     </>
   )
