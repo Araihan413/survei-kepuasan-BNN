@@ -2,8 +2,10 @@ import FormField from "../Elements/FormField"
 import { IoIosLock } from "react-icons/io";
 import { MdOutlineEmail } from "react-icons/md";
 import Button from "../Elements/Button";
+import { useNavigate } from "react-router-dom";
 
 const FormLogin = () => {
+  const navigate = useNavigate()
   return (
     <>
       <div className="flex max-w-130 w-full h-screen flex-col justify-center gap-5 p-20">
@@ -14,7 +16,7 @@ const FormLogin = () => {
         <form className="flex flex-col gap-4" action="">
           <FormField name="username" placeholder='Username' icon={MdOutlineEmail} ></FormField>
           <FormField name="password" placeholder="Password" type="password" icon={IoIosLock}></FormField>
-          <Button type="submit" text="Login" color="bg-[#0082cd]" style="text-white mt-2"></Button>
+          <Button type="submit" text="Login" color="bg-[#0082cd]" style="text-white mt-2" onClick={() => { navigate('/dashboard') }}></Button>
         </form>
         <div className="flex justify-center">
           <p className="text-sm text-blue-500/60 cursor-pointer">Lupa Password?</p>

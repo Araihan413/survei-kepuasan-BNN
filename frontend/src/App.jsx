@@ -1,10 +1,15 @@
 import Login from "./components/pages/login"
 import Dashborad from "./components/pages/dashboard"
+import Layout from "./components/layout/Layout"
+import Home from "./components/pages/home"
+import Analysis from "./components/pages/analysis"
+import Survey from "./components/pages/survey"
+import ManageService from "./components/pages/manageService"
+import ManageQuestion from "./components/pages/manageQuestion"
+import Help from "./components/pages/help"
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import ProtectedRouter from "./routes/ProtectedRoute"
 import { AuthProvider } from "./auth/AuthContext"
-import Layout from "./components/layout/Layout"
-import Home from "./components/pages/home"
 function App() {
 
   const router = createBrowserRouter([
@@ -23,14 +28,34 @@ function App() {
         {
           path: '/dashboard',
           element: <Dashborad></Dashborad>
-        }
+        },
+        {
+          path: '/analisis',
+          element: <Analysis></Analysis>
+        },
+        {
+          path: '/survei',
+          element: <Survey></Survey>
+        },
+        {
+          path: '/kelola-pertanyaan',
+          element: <ManageQuestion></ManageQuestion>
+        },
+        {
+          path: '/kelola-layanan',
+          element: <ManageService></ManageService>
+        },
+        {
+          path: '/bantuan',
+          element: <Help></Help>
+        },
       ]
     }
   ])
 
   return (
     <>
-      <div className='w-screen h-screen flex justify-center items-center bg-blue-100'>
+      <div className='w-screen h-screen'>
         <RouterProvider router={router}></RouterProvider>
       </div>
     </>

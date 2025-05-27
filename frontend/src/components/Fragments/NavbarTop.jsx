@@ -1,0 +1,34 @@
+import { FaRegBell } from "react-icons/fa6";
+import { MdKeyboardArrowDown } from "react-icons/md";
+
+const NavbarTop = () => {
+  return (
+    <>
+      <nav className="flex justify-between items-center fixed top-0 left-0 right-0 z-30 bg-white px-5 py-3 pr-12 shadow-md">
+        <div className="ml-65">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="text-[#dfb400] text-xl bg-[#fff8da]/50 p-2 rounded-md cursor-pointer">
+            <FaRegBell />
+          </div>
+          <div className="flex items-center gap-3 cursor-pointer">
+            <div className="w-10 h-10 rounded-xl ">
+              <img src="../aset/profile/profileDefault.png" alt="gambar profile" />
+            </div>
+            <div className="flex items-start gap-3">
+              <div>
+                <h1 className="font-semibold text-sm">Ahmad Raihan</h1>
+                <p className="text-xs">Admin</p>
+              </div>
+              <div className="mt-1">
+                <MdKeyboardArrowDown />
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </>
+  )
+}
+export default NavbarTop

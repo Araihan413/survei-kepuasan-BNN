@@ -4,37 +4,53 @@ import { LuClipboardList } from "react-icons/lu";
 import { HiPencil } from "react-icons/hi2";
 import { FaHeadset } from "react-icons/fa";
 import { RiLogoutBoxRLine } from "react-icons/ri";
+import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 const Navbar = () => {
+  const navigasi = useNavigate()
+  const navItems = [
+    { name: "DashBoard", path: "/dashboard", icon: <AiFillPieChart /> },
+    { name: "Analisis", path: "/analisis", icon: <GoGraph /> },
+    { name: "Survei", path: "/survei", icon: <LuClipboardList /> },
+    { name: "Kelola Pertanyaan", path: "/kelola-pertanyaan", icon: <HiPencil /> },
+    { name: "Kelola Layanan", path: "/kelola-layanan", icon: <HiPencil /> },
+    { name: "Bantuan", path: "/bantuan", icon: <FaHeadset /> },
+    { name: "keluar", path: "/keluar", icon: <RiLogoutBoxRLine /> },
+
+  ];
   return (
     <>
-      <nav>
-        <div>
-          <img src="" alt="" />
-          <h1>SIGAP BNN</h1>
+      <nav className="bg-white pr-2 pl-8 pt-5.5 z-50 fixed h-screen overflow-y-scroll">
+        <div className="flex gap-3 items-center mb-8 mr-4 cursor-pointer" onClick={() => navigasi("/dashboard")}>
+          <img className="w-11" src="/aset/logo/logoBnn.png" alt="logo bnn" />
+          <h1 className="text-xl font-bold">SIGAP BNN</h1>
         </div>
         <div>
-          <ul>
-            <li>
-              <div className="flex items-center gap-3"><AiFillPieChart /><h1>DashBoard</h1></div>
-            </li>
-            <li>
-              <div className="flex items-center gap-3"><GoGraph /><h1>Analisis</h1></div>
-            </li>
-            <li>
-              <div className="flex items-center gap-3"><LuClipboardList /><h1>Survei</h1></div>
-            </li>
-            <li>
-              <div className="flex items-center gap-3"><HiPencil /><h1>Kelola Pertanyaan</h1></div>
-            </li>
-            <li>
-              <div className="flex items-center gap-3"><HiPencil /><h1>Kelola Layanan</h1></div>
-            </li>
-            <li>
-              <div className="flex items-center gap-3"><FaHeadset /><h1>Bantuan</h1></div>
-            </li>
-            <li>
-              <div className="flex items-center gap-3"><RiLogoutBoxRLine /><h1>Keluar</h1></div>
-            </li>
+          <ul className="flex flex-col gap-3">
+            {navItems.map((item) => (
+              <li key={item.name}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 py-3 rounded-xl pl-6 hover:bg-blue-800/90 hover:text-white ${isActive ? "bg-blue-800/90 text-white" : "text-gray-700"
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className="text-xl">
+                        {item.icon}
+                      </div>
+                      <h1 className={`text-sm ${isActive ? "font-semibold" : "font-normal"}`}>{item.name}</h1>
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+            {/* <li>
+              <NavLink className="flex items-center gap-3"><RiLogoutBoxRLine /><h1>Keluar</h1></NavLink>
+            </li> */}
           </ul>
         </div>
       </nav>
