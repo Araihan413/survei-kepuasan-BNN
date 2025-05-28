@@ -6,8 +6,8 @@ const login = async (req, res) => {
 
     const {username, password} = req.body;
 
-    const loginUser = await authService.authLogin(username, password)
-    res.cookie('refreshToken', loginUser.tokenRefresh, 
+    const loginAdmin = await authService.authLogin(username, password)
+    res.cookie('refreshToken', loginAdmin.tokenRefresh, 
       {
         httpOnly: true, 
         maxAge: 24 * 60 * 60 * 1000
@@ -15,7 +15,7 @@ const login = async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'login sukses',
-      data: loginUser
+      data: loginAdmin
     })
 
   } catch (error) {
@@ -30,9 +30,9 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
 try {
-  const {userId, name, username, password, confirmPassword, role, email} = req.body;
+  const {adminId, name, username, password, confirmPassword, role, email} = req.body;
 
-  const registerUser = await authService.authRegister({userId, name, username, password, confirmPassword, role, email})
+  const registerUser = await authService.authRegister({adminId, name, username, password, confirmPassword, role, email})
 
   res.status(201).json({
     status: 'success',
@@ -68,9 +68,9 @@ const forgetPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   const {password, confirmPassword } = req.body
-  const userId = req.user.userId
+  const adminId = req.user.adminId
   try {
-    const resetPasswordLink = await authService.authResetPassword(userId, password, confirmPassword)
+    const resetPasswordLink = await authService.authResetPassword(adminId, password, confirmPassword)
     res.status(200).json({
       status: 'success',
       message: 'Password berhasil direset',

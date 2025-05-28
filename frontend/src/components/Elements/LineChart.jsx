@@ -1,10 +1,10 @@
 import { ResponsiveLine } from '@nivo/line';
 
-const LineChart = ({ data }) => {
+const LineChart = ({ data, height }) => {
   return (
     <>
       <div className='w-full overflow-x-auto'>
-        <div className='min-w-[600px] h-[300px] overflow-hidden'>
+        <div className={`min-w-[600px] ${height} overflow-hidden`}>
           <ResponsiveLine
             data={data}
             margin={{ top: 50, right: 10, bottom: 50, left: 50 }}

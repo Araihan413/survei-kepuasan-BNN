@@ -55,7 +55,7 @@ function App() {
 
   return (
     <>
-      <div className='w-screen h-screen'>
+      <div className='min-h-screen'>
         <RouterProvider router={router}></RouterProvider>
       </div>
     </>

@@ -2,15 +2,16 @@ const express = require('express');
 const router = express.Router();
 const {verifyToken} = require('../middleware/auth.middleware')
 const {requireRole} = require('../middleware/role.middleware')
-const userService = require('./users.service');
+const adminService = require('./admin.service');
 
 router.get('/profile', verifyToken, async (req, res) => {
   try {
-    const dataProfil  = await  userService.getUserById(req.user.userId)
+    const {adminId} = req.admin
+    const dataProfil  = await  adminService.getAdminById(adminId)
 
     res.status(200).json({
       status: 'success',
-      message: 'Profil user berhasil diambil',
+      message: 'Profil admin berhasil diambil',
       data: dataProfil
     })
   } catch (error) {
@@ -24,9 +25,10 @@ router.get('/profile', verifyToken, async (req, res) => {
 
 router.post('/change-password', verifyToken, async (req, res) => {
   try {
-    const dataUser = req.body;
-    const {password, newPassword, confirmNewPassword} = dataUser
-    await  userService.updatePasswordById(req.user.userId, {password, newPassword, confirmNewPassword})
+    const {adminId} = req.admin
+    const dataAdmin = req.body;
+    const {password, newPassword, confirmNewPassword} = dataAdmin
+    await  adminService.updatePasswordById(adminId, {password, newPassword, confirmNewPassword})
     res.status(200).json({
       status: 'success',
       message: 'Password Berhasil diubah',
@@ -44,12 +46,12 @@ router.post('/change-password', verifyToken, async (req, res) => {
 router.get('/', verifyToken, async (req, res) => {
   try {
 
-    const users = await  userService.getAllUser()
+    const admin = await  adminService.getAllAdmin()
 
     res.status(200).json({
       status: 'success',
-      message: 'data user berhasil diambil',
-      data: users
+      message: 'data admin berhasil diambil',
+      data: admin
     })
 
   } catch (error) {
@@ -63,13 +65,13 @@ router.get('/', verifyToken, async (req, res) => {
 
 router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const userId = req.params.id;
+    const adminId = req.params.id;
 
-    const user = await  userService.getUserById(userId)
+    const admin = await  adminService.getAdminById(adminId)
     res.status(200).json({
       status: 'success',
-      message: 'data user berhasil diambil',
-      data: user
+      message: 'data admin berhasil diambil',
+      data: admin
     })
   } catch (error) {
     res.status(400).json({
@@ -82,12 +84,12 @@ router.get('/:id', verifyToken, async (req, res) => {
 
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const dataUser = req.body;
-    const user = await  userService.createUser(dataUser)
+    const dataAdmin = req.body;
+    const admin = await  adminService.createAdmin(dataAdmin)
     res.status(201).json({
       status: 'success',
-      message: 'data user berhasil dibuat',
-      data: user
+      message: 'data admin berhasil dibuat',
+      data: admin
     })
   } catch (error) {
     res.status(400).json({
@@ -101,12 +103,12 @@ router.post('/', verifyToken, async (req, res) => {
 router.patch('/:id', verifyToken, async (req, res) => {
   try {
     const {id} = req.params;
-    const dataUser = req.body;
-    const user = await  userService.updateUserById(id, dataUser)
+    const dataAdmin = req.body;
+    const admin = await  adminService.updateAdminById(id, dataAdmin)
     res.status(200).json({
       status: 'success',
-      message: 'data user berhasil diupdate',
-      data: user
+      message: 'data admin berhasil diupdate',
+      data: admin
     })
   } catch (error) {
     res.status(400).json({
@@ -120,10 +122,11 @@ router.patch('/:id', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const {id} = req.params;
-    await  userService.deleteUserById(id)
+    const admin = await  adminService.deleteAdminById(id)
     res.status(200).json({
       status: 'success',
-      message: 'data user berhasil dihapus',
+      message: 'data admin berhasil dihapus',
+      data: admin
     })
   } catch (error) {
     res.status(400).json({

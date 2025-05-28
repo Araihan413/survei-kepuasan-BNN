@@ -7,7 +7,7 @@ const verifyToken = async (req, res, next) => {
 
   try {
     const decoded = utilsJwt.verifyToken(token)
-    req.user = decoded
+    req.admin = decoded
     next()
   } catch (error) {
     res.status(401).json({
@@ -25,7 +25,7 @@ const verifyResetToken = async (req, res, next) => {
 
   try {
     const decoded = utilsJwt.verifyResetToken(token)
-    req.user = decoded
+    req.admin = decoded
     next()
   } catch (error) {
     res.status(401).json({

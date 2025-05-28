@@ -2,6 +2,8 @@ import CircleProgressbar from "../Elements/CircleProgressbar"
 import DropdownFilter from "../Elements/DropdownFilter"
 import { useState } from "react"
 import LineChart from "../Elements/LineChart"
+import TableData from "../Elements/TableData"
+
 
 const Dashborad = () => {
   const optionValue = [
@@ -48,7 +50,7 @@ const Dashborad = () => {
   return (
     <>
       <div className="py-10 px-5">
-        <section className="grid grid-cols-2 gap-5 overflow-x-hidden w-full pb-10 ">
+        <section className="grid grid-cols-2 gap-5 w-full pb-10 ">
           <div className="bg-white shadow-lg py-5 relative rounded-xl col-span-1">
             <div className="pl-5">
               <h1 className="text-lg font-bold text-gray-700">Hasil Analisis</h1>
@@ -71,13 +73,18 @@ const Dashborad = () => {
               <DropdownFilter value={selectedOption} options={optionValue} onChange={handleDropdownChange}></DropdownFilter>
             </div>
             <div>
-              <LineChart data={lineData}></LineChart>
+              <LineChart data={lineData} height={'h-[300px]'}></LineChart>
             </div>
           </div>
         </section>
-        <section className="flex mt-20 bg-amber-400">
-          <div className="">
-            <h1 className="text-lg font-bold text-gray-700">Table Respondent</h1>
+        <section className="flex flex-col gap-5">
+          <div className="bg-white p-5 rounded-xl shadow-lg">
+            <div className="">
+              <h1 className="text-lg font-bold text-gray-700">Pengisian Survei</h1>
+            </div>
+            <div>
+              <TableData></TableData>
+            </div>
           </div>
         </section>
       </div>

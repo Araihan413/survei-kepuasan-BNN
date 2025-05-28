@@ -21,9 +21,9 @@ const Navbar = () => {
   ];
   return (
     <>
-      <nav className="bg-white pr-2 pl-8 pt-5.5 z-50 fixed h-screen overflow-y-scroll">
+      <nav className="bg-white pr-1 pl-5 pt-5.5 z-50 fixed h-screen overflow-y-scroll">
         <div className="flex gap-3 items-center mb-8 mr-4 cursor-pointer" onClick={() => navigasi("/dashboard")}>
-          <img className="w-11" src="/aset/logo/logoBnn.png" alt="logo bnn" />
+          <img className="w-10" src="/aset/logo/logoBnn.png" alt="logo bnn" />
           <h1 className="text-xl font-bold">SIGAP BNN</h1>
         </div>
         <div>
@@ -33,13 +33,13 @@ const Navbar = () => {
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3.5 py-3 rounded-xl pl-6 hover:bg-blue-800/90 hover:text-white ${isActive ? "bg-blue-800/90 text-white" : "text-gray-700"
+                    `flex items-center gap-3 py-2.5 rounded-xl pl-4 hover:bg-blue-800/90 hover:text-white ${isActive ? "bg-blue-800/90 text-white" : "text-gray-700"
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      <div className="text-xl">
+                      <div className="text-base">
                         {item.icon}
                       </div>
                       <h1 className={`text-sm ${isActive ? "font-semibold" : "font-normal"}`}>{item.name}</h1>
