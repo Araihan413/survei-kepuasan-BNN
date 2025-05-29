@@ -5,8 +5,11 @@ const LineChart = ({ data, height }) => {
     <>
       <div className='w-full overflow-x-auto'>
         <div className={`min-w-[600px] ${height} overflow-hidden`}>
+
           <ResponsiveLine
             data={data}
+            // height={400}
+            animate
             margin={{ top: 50, right: 10, bottom: 50, left: 50 }}
             xScale={{ type: 'point' }}
             yScale={{
@@ -20,23 +23,38 @@ const LineChart = ({ data, height }) => {
             axisRight={null}
             axisBottom={{
               orient: 'bottom',
-              legend: 'X axis',
+              legend: 'Bulan',
               legendOffset: 36,
               legendPosition: 'middle'
             }}
             axisLeft={{
               orient: 'left',
-              legend: 'Y axis',
+              legend: 'Jumlah Responden',
               legendOffset: -40,
               legendPosition: 'middle'
             }}
+            curve="monotoneX"
             colors={{ scheme: 'category10' }}
+            enablePoints={true}
             pointSize={10}
-            pointColor={{ theme: 'background' }}
+            pointColor="#41b9ff"
             pointBorderWidth={2}
             pointBorderColor={{ from: 'serieColor' }}
             pointLabelYOffset={-12}
             useMesh={true}
+            enablePointLabel={true}
+            enableTouchCrosshair
+            initialHiddenIds={[
+              'cognac'
+            ]}
+            pointSymbol={({ size, color }) => (
+              <circle
+                r={size / 2}
+                fill={color}
+                stroke="white"
+                strokeWidth={2}
+              />
+            )}
           />
         </div>
       </div>

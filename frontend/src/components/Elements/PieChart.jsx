@@ -1,23 +1,65 @@
 import { ResponsivePie } from "@nivo/pie";
 
-const data = [
-  { id: "A", label: "A", value: 3.88, color: "#00C49F" },
-  { id: "B", label: "Sisa", value: 0.12, color: "#eee" },
-];
-const PieChart = () => {
+
+const PieChart = ({ data, width = 330, height = 200 }) => {
   return (
     <>
-      <div style={{ height: 300 }}>
+      <div className={`h-[200px] w-[330px]`}>
         <ResponsivePie
-          data={data}
+          width={width}
+          activeOuterRadiusOffset={8}
           innerRadius={0}
-          padAngle={1}
-          cornerRadius={3}
-          colors={{ datum: "data.color" }} // ambil warna dari data.color
-          borderWidth={1}
-          borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
-          enableArcLabels={false}
+          animate
+          data={data}
+          height={height}
+          padAngle={0.5}
           enableArcLinkLabels={false}
+          cornerRadius={3}
+          arcLabel={e => `${Math.round(e.value)}%`}
+          arcLinkLabelsColor={{
+            from: 'color'
+          }}
+          arcLinkLabelsThickness={3}
+          arcLinkLabelsTextColor={{
+            from: 'color',
+            modifiers: [['darker', 1.2]]
+          }}
+          colors={{ datum: "data.color" }}
+          legends={[
+            {
+              anchor: 'right',
+              direction: 'column',
+              effects: [
+                {
+                  on: 'hover',
+                  style: {
+                    itemTextColor: '#000',
+                  }
+                }
+              ],
+              itemHeight: 18,
+              itemTextColor: '#999',
+              itemWidth: 100,
+              symbolShape: 'circle',
+              symbolSize: 14,
+              toggleSerie: true,
+              translateY: 0,
+              translateX: 105
+            }
+          ]}
+          margin={{
+            bottom: 20,
+            left: 5,
+            right: 150,
+            top: 20
+          }}
+          theme={{
+            text: {
+              fontFamily: '\'SFMono-Regular\', Consolas, \'Liberation Mono\', Menlo, Courier, monospace',
+              fontWeight: 600
+            }
+          }}
+
         />
       </div>
     </>

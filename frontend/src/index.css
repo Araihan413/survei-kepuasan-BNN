@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+  --color-biru-tua: #134784;
+  --color-biru-gelap: #05004E;
+  --color-biru-muda: #0575E6;
+}
+
+@layer utilities {
+  .bg-gradasi-biru {
+    @apply bg-linear-to-b from-[#0575E6] from-0% via-[#02298A] via-85% to-[#021B79] to-100%;  }
+}

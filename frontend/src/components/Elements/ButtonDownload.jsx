@@ -1,8 +1,8 @@
-const ButtonDownload = ({ type, text = '', onClick = '', color = 'bg-slate-200', icon = '', style = '' }) => {
+const ButtonDownload = ({ type = 'button', text = '', onClick = '', color = 'bg-slate-200', icon = '', style = '' }) => {
   return (
     <>
-      <div>
-        <button onClick={onClick} type={type} className={`${color} ${style} w-max p-2 font-semibold cursor-pointer`}>{icon}{text}</button>
+      <div className="w-max">
+        <button onClick={onClick} type={type} className={`${color} ${style} flex justify-center items-center gap-2 w-max rounded-md p-2 cursor-pointer font-bold border-1 border-black/20`}>{icon}{text}</button>
       </div>
     </>
   )

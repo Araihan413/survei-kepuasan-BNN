@@ -43,26 +43,26 @@ const CircleProgressbar = (props) => {
 
   return (
     <>
-      <div className="flex flex-col relative">
-        <div className="flex justify-end absolute top-0 -right-38 gap-3">
+      <div className="flex flex-col relative w-max">
+        <div className="flex justify-end absolute top-0 -right-28 gap-3">
           {!hiddenColor &&
             <DropdownColor value={selectedOption} options={optionValue} handleChange={handleChangeColor} label="Pilih Warna"></DropdownColor>}
           {!hiddenDownload &&
-            <ButtonDownload type="button" color="bg-white" icon={<MdOutlineFileDownload />} style="rounded-md w-max font-bold border-1 border-black/20" onClick={downloadImage}></ButtonDownload>}
+            <ButtonDownload type="button" color="bg-white" icon={<MdOutlineFileDownload />} onClick={downloadImage}></ButtonDownload>}
         </div>
         <div ref={ref} className={`flex flex-col items-center p-5 bg-transparent ${width} overflow-hidden`}>
-          <div className="w-full max-w-[200px] aspect-square font-bold p-5 box-border">
+          <div className="w-full max-w-[300px] aspect-square font-bold p-5 box-border">
             <CircularProgressbar
               value={value}
               maxValue={max}
               text={`${value.toFixed(2)}`}
               strokeWidth={18}
               styles={buildStyles({
-                pathColor: '#00C49F',        // Warna jalur progress
-                textColor: "#333",           // Warna teks di tengah
-                trailColor: "#ffffff",          // Warna latar belakang
+                pathColor: '#00C49F',
+                textColor: "#333",
+                trailColor: "#ffffff",
                 textSize: "18px",
-                backgroundColor: "#f23131",            // Ukuran teks
+                backgroundColor: "#f23131",
               })}
             />
           </div>

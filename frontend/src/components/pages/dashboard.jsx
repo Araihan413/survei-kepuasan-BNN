@@ -2,7 +2,8 @@ import CircleProgressbar from "../Elements/CircleProgressbar"
 import DropdownFilter from "../Elements/DropdownFilter"
 import { useState } from "react"
 import LineChart from "../Elements/LineChart"
-import TableData from "../Elements/TableData"
+import PaginatedTable from "../Fragments/PaginatedTable"
+import { MdFilterAlt } from "react-icons/md";
 
 
 const Dashborad = () => {
@@ -17,7 +18,7 @@ const Dashborad = () => {
 
   const lineData = [
     {
-      id: 'Sales',
+      id: 'Responden',
       color: 'hsl(205, 70%, 50%)',
       data: [
         { x: 'Jan', y: 50 },
@@ -77,13 +78,13 @@ const Dashborad = () => {
             </div>
           </div>
         </section>
-        <section className="flex flex-col gap-5">
+        <section className="flex flex-col gap-5 w-full">
           <div className="bg-white p-5 rounded-xl shadow-lg">
             <div className="">
               <h1 className="text-lg font-bold text-gray-700">Pengisian Survei</h1>
             </div>
-            <div>
-              <TableData></TableData>
+            <div className="overflow-x-auto">
+              <PaginatedTable></PaginatedTable>
             </div>
           </div>
         </section>
