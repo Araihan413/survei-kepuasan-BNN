@@ -3,10 +3,15 @@ const dashboardService = require('./dashboard.service')
 const express = require('express');
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/recent-respondents', async (req, res) => {
   try {
-    const {dateAgo, year} = req.query
-    const data = await dashboardService.getDashboard(dateAgo, year)
+    const {dateAgo} = req.query
+    const name = req.query.name || null;
+    const job = req.query.job || null;
+    const service = req.query.service || null;
+    const typeSurvey = req.query.typeSurvey || null;
+
+    const data = await dashboardService.getRecentRespondentsByFilter(dateAgo, name, job, service, typeSurvey)
     res.status(200).json({
       status: 'success',
       message: 'Data dashboard berhasil diambil',
@@ -21,7 +26,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/countRespondents/:year', async (req, res) => {
+router.get('/count-respondents/:year', async (req, res) => {
   try {
     const serviceId = req.query.serviceId || null;
     const {year} = req.params
@@ -34,13 +39,13 @@ router.get('/countRespondents/:year', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
+      message: error.message,
       error: error.message
     })
   }
 })
 
-router.get('/avgScore', async (req, res) => {
+router.get('/avg-score', async (req, res) => {
   try {
     const {dateAgo} = req.query
     const data = await dashboardService.getAvgScoreSurvey(dateAgo)
@@ -52,7 +57,7 @@ router.get('/avgScore', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
+      message: error.message,
       error: error.message
     })
   }

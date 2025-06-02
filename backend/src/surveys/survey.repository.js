@@ -6,23 +6,51 @@ const findQuestionsInSurvey = async () => {
     select: {
       surveyId: true,
       title: true,
+      isPublished: true,
+      orderPage: true,
+      isPersonal: true,
       question: {
         select: {
           questionId: true,
           questionText: true,
           displayOrder: true,
-          isActive: true
+          isActive: true,
+          isPersonal: true,
+          respondentField: true
         },
         orderBy: {
           displayOrder: 'asc'
         }
       },
-      orderBy: {
-        orderPage: 'asc'
-      }
+    },
+    orderBy: {
+      orderPage: 'asc'
     }
   })
   return surveys
+}
+
+const findSurveyIncludeQuestion = async (id) => {
+  const survey = await prisma.survey.findUnique({
+    where : {
+      surveyId: id
+    },
+    include: {
+      question: {
+        orderBy: {
+          displayOrder: 'asc'
+        },
+        include: {
+          option: {
+            orderBy: {
+              scaleValue: 'desc'
+            }
+          }
+        }
+      }
+    }
+  })
+  return survey
 }
 
 // ? untuk menampilkan daftar survei di menu survey
@@ -100,12 +128,7 @@ const deleteSurveyById = async (id) => {
 // ? untuk insert data di halaman survei
 const insertSurvey = async (dataSurvey) => {
   const survey = await prisma.survey.create({
-    data: {
-      title: dataSurvey.title,
-      description: dataSurvey.description,
-      createdBy: dataSurvey.createdBy,
-      orderPage: dataSurvey.orderPage
-    }
+    data: dataSurvey,
   })
   return survey
 }
@@ -116,5 +139,6 @@ module.exports = {
   findDetaiSurvey,
   deleteSurveyById,
   updateSurveyById,
-  insertSurvey
+  insertSurvey,
+  findSurveyIncludeQuestion
 }

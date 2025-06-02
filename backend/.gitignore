@@ -13,3 +13,21 @@ node_modules
 .prisma/
 
 generated/
+
+# Mengabaikan file gambar
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+*.svg
+
+# Mengabaikan file video
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.flv
+*.wmv
+*.webm

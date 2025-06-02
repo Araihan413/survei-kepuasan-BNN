@@ -4,28 +4,37 @@ const router = express.Router();
 const {verifyToken} = require('../middleware/auth.middleware')
 
 // ! get all survey
+// ? pakai
 router.get('/questions', async (req, res) => {
-  const {isActive} = req.query
   try {
-    if (isActive !== undefined) {
-      const activeStatus = isActive === 'true'
-      const surveys = await surveyService.getAllQuestionIsActive(activeStatus)
-
-      res.status(200).json({
-        status: 'success',
-        message: 'data survey berhasil diambil',
-        data: surveys
-      })
-    } else {
       const surveys = await surveyService.getAllQuestionInSurvey()
-
       res.status(200).json({
         status: 'success',
         message: 'data survey berhasil diambil',
-        data: surveys
+        data: surveys,
+        newAccessToken: res.get('New-Access-Token')
       })
-      res.json({ message: 'Tanpa filter isActive' })
-    }
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+// ? pakai
+router.get('/:id/questions', async (req, res) => {
+  const surveyId = parseInt(req.params.id)
+  try {
+      const surveys = await surveyService.getSurveyIncludeQuestion(surveyId)
+      res.status(200).json({
+        status: 'success',
+        message: 'data survey berhasil diambil',
+        data: surveys,
+        newAccessToken: res.get('New-Access-Token')
+      })
+    
   } catch (error) {
     res.status(400).json({
       status: "error",
@@ -37,13 +46,15 @@ router.get('/questions', async (req, res) => {
 
 
 // ! get all survey
+// ? pakai
 router.get('/', async (req, res) => {
   try {
     const survey = await surveyService.getAllSurvey()
     res.status(200).json({
       status: 'success',
       message: 'data survey berhasil diambil',
-      data: survey
+      data: survey,
+      newAccessToken: res.get('New-Access-Token')
     })
 
   }catch (error) {
@@ -58,13 +69,14 @@ router.get('/', async (req, res) => {
 // ! get detail survey
 router.get('/:id', async (req, res) => {
   try {
-    const {surveyId} = req.params
+    const surveyId = req.params.id
 
-    const surveyById = await surveyService.getDetailSurveyById(surveyId)
+    const surveyById = await surveyService.getDetailSurveyById(parseInt(surveyId))
     res.status(200).json({
       status: 'success',
       message: 'data survey berhasil diambil',
-      data: surveyById
+      data: surveyById,
+      newAccessToken: res.get('New-Access-Token')
     })
 
   }catch (error) {
@@ -77,7 +89,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // ! create survey
-router.post('/', verifyToken, async (req, res) => {
+router.post('/',  async (req, res) => {
   try {
     const dataSurvey = req.body
     const newSurvey = await surveyService.insertSurvey(dataSurvey)
@@ -85,7 +97,8 @@ router.post('/', verifyToken, async (req, res) => {
     res.status(201).json({
       status: 'success',
       message: 'Survei berhasil dibuat',
-      data: newSurvey
+      data: newSurvey,
+      newAccessToken: res.get('New-Access-Token')
     })
   }catch (error) {
     res.status(400).json({
@@ -96,15 +109,37 @@ router.post('/', verifyToken, async (req, res) => {
   }
 })
 
+// ! buat banyak jawaban
+// router.post('/submit-survey', async (req, res) => {
+//   try {
+//     const dataSurvey = req.body
+//     const newSurvey = await surveyService.insertManySurvey(dataSurvey)
+//     res.status(201).json({
+//       status: 'success',
+//       message: 'Survei berhasil dibuat',
+//       data: newSurvey,
+//       newAccessToken: res.get('New-Access-Token')
+//     })
+//   }catch (error) {
+//     res.status(400).json({
+//       status: "error",
+//       message: "Something went wrong on the server",
+//       error: error.message
+//     })
+//   }
+// })
+
+
 // ! delete survey
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try{
-    const surveyId = req.params.id;
+    const surveyId = parseInt(req.params.id);
     const deleteSurvey = await surveyService.deleteSurveyById(surveyId)
     res.status(200).json({
       status: 'success',
       message: 'data survey berhasil dihapus',
-      deleteSurveyId : deleteSurvey
+      deleteSurveyId : deleteSurvey,
+      newAccessToken: res.get('New-Access-Token')
     })
   }catch (error) {
     res.status(400).json({
@@ -116,15 +151,16 @@ router.delete('/:id', verifyToken, async (req, res) => {
 })
 
 // ! update survey
-router.patch('/:id', verifyToken, async (req, res) => {
+router.patch('/:id',  async (req, res) => {
   try {
-    const surveyId = req.params
+    const surveyId = req.params.id
     const dataSurvey = req.body
-    const updateDataSurvey = await surveyService.updateDataSurveyById(surveyId, dataSurvey)
+    const updateDataSurvey = await surveyService.updateDataSurveyById(parseInt(surveyId), dataSurvey)
     res.status(200).json({
       status: 'success',
       message : "Survey berhasil di update",
-      data: updateDataSurvey
+      data: updateDataSurvey,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({

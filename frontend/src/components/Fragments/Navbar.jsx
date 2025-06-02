@@ -16,7 +16,6 @@ const Navbar = () => {
     { name: "Kelola Pertanyaan", path: "/kelola-pertanyaan", icon: <HiPencil /> },
     { name: "Kelola Layanan", path: "/kelola-layanan", icon: <HiPencil /> },
     { name: "Bantuan", path: "/bantuan", icon: <FaHeadset /> },
-    { name: "keluar", path: "/keluar", icon: <RiLogoutBoxRLine /> },
 
   ];
   return (
@@ -48,9 +47,14 @@ const Navbar = () => {
                 </NavLink>
               </li>
             ))}
-            {/* <li>
-              <NavLink className="flex items-center gap-3"><RiLogoutBoxRLine /><h1>Keluar</h1></NavLink>
-            </li> */}
+            <li onClick={() => navigasi("/login")}>
+              <NavLink className="flex items-center gap-3 py-2.5 rounded-xl pl-4 hover:bg-blue-800/90 hover:text-white text-gray-700">
+                <div className="text-base">
+                  <RiLogoutBoxRLine />
+                </div>
+                <h1 className="text-sm font-normal">Keluar</h1>
+              </NavLink>
+            </li>
           </ul>
         </div>
       </nav>

@@ -5,10 +5,22 @@ const getAllQuestionInSurvey = async () => {
   return survey
 }
 
-const getAllQuestionIsActive = async (isActive) => {
-  const survey = await surveyRepository.findQuestionsInSurvey()
-  const questionActive = survey.question.filter(question => question.isActive === isActive)
-  return questionActive
+const getDetailSurveyById = async (id) => {
+  const survey = await surveyRepository.findDetaiSurvey(id)
+  if (!survey) throw Error('data survey tidak ditemukan')
+  return survey
+}
+
+// const getAllQuestionIsActive = async (isActive) => {
+//   const survey = await surveyRepository.findQuestionsInSurvey()
+//   const questionActive = survey.question.filter(question => question.isActive === isActive)
+//   return questionActive
+// }
+
+const getSurveyIncludeQuestion = async (id) => {
+  await getDetailSurveyById(id)
+  const survey = await surveyRepository.findSurveyIncludeQuestion(id)
+  return survey
 }
 
 const getAllSurvey = async () => {
@@ -16,14 +28,10 @@ const getAllSurvey = async () => {
   return survey
 }
 
-const getDetailSurveyById = async (id) => {
-  const survey = await surveyRepository.findDetaiSurvey(id)
-  if (!survey) throw Error('data survey tidak ditemukan')
-  return survey
-}
+
 
 const insertSurvey = async (dataSurvey) => {
-  const requiredFields = ['title', 'createBy', 'orderPage']
+  const requiredFields = ['title', 'adminId', 'orderPage']
 
   for (const field of requiredFields) {
     if (!dataSurvey[field]) {
@@ -66,10 +74,11 @@ const deleteSurveyById = async (id) => {
 
 module.exports = { 
   getAllQuestionInSurvey,
-  getAllQuestionIsActive,
+  // getAllQuestionIsActive,
   getAllSurvey,
   getDetailSurveyById,
   insertSurvey,
   updateDataSurveyById,
-  deleteSurveyById
+  deleteSurveyById,
+  getSurveyIncludeQuestion
 }

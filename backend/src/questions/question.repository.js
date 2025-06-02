@@ -8,17 +8,20 @@ const findQuestionById = (id) => {
   })
   return question
 }
+const findQuestions = () => {
+  const question = prisma.question.findMany({
+    where: {
+      survey: {
+        isPublished: true
+      }
+    }
+  })
+  return question
+}
 
 const insertQuestion = (newDataQuestion) => {
   const newQuestion = prisma.question.create({
-    data: {
-      surveyId: newDataQuestion.surveyId,
-      questionText: newDataQuestion.questionText,
-      questionType: newDataQuestion.questionType,
-      isRequired: newDataQuestion.isRequired,
-      displayOrder: newDataQuestion.displayOrder,
-      createdBy: newDataQuestion.createdBy
-    }
+    data: newDataQuestion
   })
   return newQuestion
 }
@@ -35,8 +38,9 @@ const updateQuestionById = (id, questionData) => {
       questionText: true,
       questionType: true,
       isRequired: true,
+      isActive: true,
       displayOrder: true,
-      createdBy: true
+      adminId: true
     }
   })
   return question
@@ -61,5 +65,6 @@ module.exports = {
   findQuestionById,
   insertQuestion,
   updateQuestionById,
-  deleteQuestionById
+  deleteQuestionById,
+  findQuestions
 }

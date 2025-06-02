@@ -16,10 +16,10 @@ const getStartDate = (rangeDate) => {
       case '3month':
         startDateSearch = subMonths(startOfMonth(now), 3);
         break;
-      case '6months':
+      case '6month':
         startDateSearch = subMonths(startOfMonth(now), 6);
         break;
-      case '12months':
+      case '12month':
         startDateSearch = subMonths(startOfMonth(now), 12);
         break;
       default:
@@ -58,7 +58,7 @@ const getRespondenByYear = async (year, serviceId) => {
 
 const getRecentRespondentsByFilter = async (date, name, job, service, typeSurvey) => {
   const startDate = getStartDate(date)
-  const dataRespondents = await dashboardRepository.respondentsPerMonth(startDate)
+  const dataRespondents = await dashboardRepository.recentRespondents(startDate)
 
   const resultDataRespondents = []
 
@@ -80,15 +80,15 @@ const getAvgScoreSurvey = async (date) => {
 }
 
 
-const getDashboard = async (date, year) => {
-  const startDate = getStartDate(date)
+// const getDashboard = async (date, year) => {
+//   const startDate = getStartDate(date)
 
-  const dataRespondents = await getRespondenByYear(year)
-  const dataAvgScore = await getAvgScoreSurvey(startDate)
-  const dataRecentRespondents = await getRecentRespondentsByFilter(startDate)
+//   const dataRespondents = await getRespondenByYear(year)
+//   const dataAvgScore = await getAvgScoreSurvey(startDate)
+//   const dataRecentRespondents = await getRecentRespondentsByFilter(startDate)
 
-  return { dataRespondents, dataAvgScore, dataRecentRespondents }
-}
+//   return { dataRespondents, dataAvgScore, dataRecentRespondents }
+// }
 
 
-module.exports = { getDashboard, getRespondenByYear, getRecentRespondentsByFilter, getAvgScoreSurvey }
+module.exports = { getRespondenByYear, getRecentRespondentsByFilter, getAvgScoreSurvey }

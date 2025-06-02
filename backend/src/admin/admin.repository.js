@@ -81,6 +81,22 @@ const updateAdmin = async (id, dataUser) => {
 return admin
 }
 
+const updateTokenRefresh = async (token) => {
+  const admin = await prisma.admin.update({
+    where: {
+      refreshToken: token
+    },
+    data: {
+      refreshToken: null
+    },
+    select: {
+      adminId: true,
+    }
+  })
+return admin
+}
+
+
 const insertAdmin = async (newDataUser) => {
   const newAdmin = await prisma.admin.create({
     data: newDataUser,
@@ -114,6 +130,7 @@ const deleteAdmin = async (id) => {
 return admin
 }
 
+
 module.exports = {
   findAdmin,
   findAdminById,
@@ -121,5 +138,6 @@ module.exports = {
   updateAdmin,
   insertAdmin,
   deleteAdmin,
-  findAdminByUsername
+  findAdminByUsername,
+  updateTokenRefresh
 }

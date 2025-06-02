@@ -7,9 +7,14 @@ import Survey from "./components/pages/survey"
 import ManageService from "./components/pages/manageService"
 import ManageQuestion from "./components/pages/manageQuestion"
 import Help from "./components/pages/help"
+import FormSurvey from "./components/pages/formSurvey"
+import ManageFormSurvey from "./components/pages/manageFormSurvey"
+import Profile from "./components/pages/profile"
+import Notification from "./components/pages/notification"
+import ForgetPassword from "./components/pages/forgetPassword"
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import ProtectedRouter from "./routes/ProtectedRoute"
-import { AuthProvider } from "./auth/AuthContext"
+
+
 function App() {
 
   const router = createBrowserRouter([
@@ -20,6 +25,18 @@ function App() {
     {
       path: '/login',
       element: <Login></Login>
+    },
+    {
+      path: '/lupa-password',
+      element: <ForgetPassword></ForgetPassword>
+    },
+    {
+      path: '/surveiBNN',
+      element: <FormSurvey></FormSurvey>
+    },
+    {
+      path: '/surveiBNN/kelola',
+      element: <ManageFormSurvey></ManageFormSurvey>
     },
     {
       path: '/',
@@ -48,6 +65,14 @@ function App() {
         {
           path: '/bantuan',
           element: <Help></Help>
+        },
+        {
+          path: '/profil',
+          element: <Profile></Profile>
+        },
+        {
+          path: '/notifikasi',
+          element: <Notification></Notification>
         },
       ]
     }

@@ -4,20 +4,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-const headerTable = ["No.", "Nama", "Pekerjaan", "Layanan", "Waktu", "Jenis Survei"];
-
-const data = Array.from({ length: 50 }, (_, i) => ({
-  no: i + 1,
-  nama: `responden ${i + 1}`,
-  pekerjaan: i % 2 === 0 ? 'Mahasiswa' : 'PNS',
-  layanan: i % 2 === 0 ? 'SKHPN' : 'Tes urin',
-  waktu: i % 2 === 0 ? '2023-06-01' : '2023-06-02',
-  jenisSurvei: i % 2 === 0 ? 'index kepuasan' : 'index anto korupsi',
-}));
-
-
-
-const PaginatedTable = ({ dataPerSlide = 10 }) => {
+const PaginatedTable = ({ dataPerSlide = 10, header, data }) => {
   const [page, setPage] = useState(0);
   const rowsPerPage = dataPerSlide;
 
@@ -32,7 +19,7 @@ const PaginatedTable = ({ dataPerSlide = 10 }) => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                {headerTable.map((item, index) => (
+                {header.map((item, index) => (
                   <TableCell key={index} sx={{ fontWeight: 'bold' }}>{item}</TableCell>
                 ))}
               </TableRow>

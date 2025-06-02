@@ -28,13 +28,13 @@ const avgScorePerSurvey = async (startDate) => {
   const dataAvgScore = await prisma.$queryRaw`
     SELECT 
       s."title",
-      AVG(o."scaleValue") AS "averageScore"
+      AVG(o."scale_value") AS "averageScore"
     FROM "Answer" a
-    JOIN "Respondent" r ON a."respondentId" = r."respondentId"
-    JOIN "Survey" s ON r."surveyId" = s."surveyId"
-    JOIN "Option" o ON a."optionId" = o."optionId"
-    WHERE r."createdAt" >= ${startDate}
-      AND s."isPublished" = true
+    JOIN "Respondent" r ON a."respondent_id" = r."respondent_id"
+    JOIN "Survey" s ON r."survey_id" = s."survey_id"
+    JOIN "Option" o ON a."option_id" = o."option_id"
+    WHERE r."created_at" >= ${startDate}
+      AND s."is_published" = true
     GROUP BY s."title";
   `
   return dataAvgScore
@@ -49,8 +49,18 @@ const recentRespondents = (startDate) => {
       }
     },
     include: {
-      survey: true,
-      service: true
+      survey: {
+        select: {
+          surveyId: true,
+          title: true
+        }
+      },
+      service: {
+        select: {
+          serviceId: true,
+          name: true
+        }
+      }
     },
     orderBy: { createdAt: 'desc' },
   })

@@ -3,25 +3,47 @@ const utilsJwt = require('../utils/jwt')
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]
-  if (!token) return res.status(401).json({status: "Unauthorized", message: "invalid token"})
+  if (!token) return res.status(401).json({status: "Unauthorized", message: "Token Tidak Valid"})
 
   try {
     const decoded = utilsJwt.verifyToken(token)
     req.admin = decoded
     next()
-  } catch (error) {
-    res.status(401).json({
-      status: "Unauthorized",
-      message: "Something went wrong on the server",  
-      error: error.message
-    })
-  }
+  } catch (accessTokenError) {
+    if (accessTokenError.name === 'TokenExpiredError') {
+      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+      
+      if (!refreshToken) {
+        return res.status(401).json({ error: "Access token expired dan refresh token tidak tersedia" });
+      }
+
+      try {
+        const decodedRefresh = utilsJwt.verifyRefreshToken(refreshToken);
+        const newAccessToken = utilsJwt.generateAccessToken(decodedRefresh);
+        res.setHeader('New-Access-Token', newAccessToken);
+        req.admin = decodedRefresh;
+        next();
+      } catch (refreshTokenError) {
+        return res.status(403).json({ 
+          error: "Sesi telah berakhir, silakan login kembali",
+          details: refreshTokenError.message 
+        });
+      }
+    } else {
+      // Jika access token invalid (bukan karena expired)
+      return res.status(403).json({ 
+        error: "Access token tidak valid",
+        details: accessTokenError.message 
+      });
+    }
+}
 }
 
+// ? menangani middleware saat reset password
 const verifyResetToken = async (req, res, next) => {
 
   const token = req.query.token
-  if (!token) return res.status(401).json({status: "Unauthorized", message: "invalid token"})
+  if (!token) return res.status(401).json({status: "Unauthorized", message: "Token Tidak Valid"})
 
   try {
     const decoded = utilsJwt.verifyResetToken(token)
@@ -30,8 +52,7 @@ const verifyResetToken = async (req, res, next) => {
   } catch (error) {
     res.status(401).json({
       status: "Unauthorized",
-      message: "Something went wrong on the server",  
-      error: error.message
+      message: "Token tidak valid atau kedaluwarsa" 
     })
   }
 

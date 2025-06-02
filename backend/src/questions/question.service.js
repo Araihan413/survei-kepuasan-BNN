@@ -1,4 +1,4 @@
-const {questionRepository} = require('./question.repository')
+const questionRepository = require('./question.repository')
 
 
 const getQuestionById = async (id) => {
@@ -6,10 +6,14 @@ const getQuestionById = async (id) => {
   if (!question) throw Error('data question tidak ditemukan')
   return question
 }
+const getAllQuestion = async () => {
+  const question = await questionRepository.findQuestions()
+  return question
+}
 
 const createQuestion = async (newDataQuestion) => {
 
-  const requiredFields = ['surveyId', 'questionText', 'questionType', 'isRequired', 'displayOrder', 'createdBy']
+  const requiredFields = ['surveyId', 'questionText', 'questionType', 'displayOrder', 'adminId']
 
   for (const field of requiredFields) {
     if (!newDataQuestion[field]) {
@@ -55,5 +59,6 @@ module.exports = {
   getQuestionById,
   createQuestion,
   updateQuestionById,
-  deleteQuestionById
+  deleteQuestionById,
+  getAllQuestion
 }

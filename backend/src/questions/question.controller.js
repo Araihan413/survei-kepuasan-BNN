@@ -3,7 +3,7 @@ const router = express.Router();
 const questionService = require('./question.service')
 const {verifyToken} = require('../middleware/auth.middleware')
 
-router.get('/:id', async (req, res) => {
+router.get('/:id',verifyToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (typeof id !== 'number') throw Error('id harus angka')
@@ -12,7 +12,25 @@ router.get('/:id', async (req, res) => {
     res.status(200).json({ 
       status: 'success',
       message: 'data question berhasil diambil',
-      data: questionById
+      data: questionById,
+      newAccessToken: res.get('New-Access-Token')
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Something went wrong on the server",
+      error: error.message
+    })
+  }
+})
+
+router.get('/', async (req, res) => {
+  try {
+    const questionById = await questionService.getAllQuestion()
+    res.status(200).json({ 
+      status: 'success',
+      message: 'data question berhasil diambil',
+      data: questionById,
     })
   } catch (error) {
     res.status(400).json({
@@ -24,7 +42,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // ! create question
-router.post('/', verifyToken, async (req, res) => {
+router.post('/',  async (req, res) => {
   try {
     const dataQuestion = req.body;
     const newQuestion = await questionService.createQuestion(dataQuestion)
@@ -32,7 +50,8 @@ router.post('/', verifyToken, async (req, res) => {
     res.status(201).json({ 
       status: 'success',
       message: 'data question berhasil ditambahkan',
-      data: newQuestion
+      data: newQuestion,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
 
@@ -44,8 +63,8 @@ router.post('/', verifyToken, async (req, res) => {
   }
 })
 
-// ! update survey
-router.patch('/:id',verifyToken, async (req, res) => {
+// ! update question
+router.patch('/:id', async (req, res) => {
   try{
     const id = parseInt(req.params.id);
     if (typeof id !== 'number') throw Error('id harus angka')
@@ -55,7 +74,8 @@ router.patch('/:id',verifyToken, async (req, res) => {
     res.status(200).json({ 
       status: 'success',
       message: 'question berhasil diupdate',
-      data: updateSurvey
+      data: updateSurvey,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -66,7 +86,7 @@ router.patch('/:id',verifyToken, async (req, res) => {
   }
 })
 
-// ! delete survey
+// ! delete question
 router.delete('/:id',verifyToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -75,7 +95,8 @@ router.delete('/:id',verifyToken, async (req, res) => {
     res.status(200).json({ 
       status: 'success',
       message: 'question berhasil dihapus',
-      data: question
+      data: question,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({

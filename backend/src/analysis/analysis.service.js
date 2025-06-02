@@ -146,8 +146,6 @@ const getSurveyAnalysis = async (surveyId, rangeDate) => {
     analysis.ranking = index + 1
   })
 
-  const sortedByQuestion = [...sortedAnalysisByAvg].sort((a, b) => b.displayOrder - a.displayOrder);
-
   // ! handle pertanyaan text
 
   const result = {
@@ -159,7 +157,7 @@ const getSurveyAnalysis = async (surveyId, rangeDate) => {
       services,
       jobs,
     },
-    questionScaleAnalysis : sortedByQuestion,
+    questionScaleAnalysis : sortedAnalysisByAvg,
     questionTextAnalysis: outputAnalysisText,
     questionOptionAnalysis: outputAnalysisOption
   }

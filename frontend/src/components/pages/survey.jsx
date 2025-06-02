@@ -1,12 +1,11 @@
 import KebabMenu from "../Elements/KebabMenu";
 import ButtonDownload from "../Elements/ButtonDownload";
 import { IoLink } from "react-icons/io5";
-import PopupEditForm from "../Fragments/PopupEditForm";
+import PopupEditForm from "../Fragments/PopupEdit";
 import { useState } from "react";
 import { LuClipboardPen } from "react-icons/lu";
 import Button from "../Elements/Button";
 import PopupDetail from "../Fragments/PopupDetail";
-import { set } from "react-hook-form";
 
 
 const survey = [

@@ -14,7 +14,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useEffect } from 'react';
 
-const PopupEditForm = ({
+const PopupEdit = ({
   open,
   onClose,
   formConfig,
@@ -127,4 +127,4 @@ const PopupEditForm = ({
     </>
   )
 }
-export default PopupEditForm
+export default PopupEdit

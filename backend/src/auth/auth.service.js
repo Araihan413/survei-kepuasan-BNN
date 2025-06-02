@@ -4,32 +4,46 @@ const utilsHash = require('../utils/hash')
 
 const authLogin = async (username, password) => {
 
-  const admin = await admin.findAdminByUsername(username)
-  if (!admin) throw new Error('username tidak ditemukan')
+  const foundAdmin = await admin.findAdminByUsername(username)
+  if (!foundAdmin) throw new Error('username salah')
 
-  const isMatch = await utilsHash.comparePassword(password, admin.password)
+  const isMatch = await utilsHash.comparePassword(password, foundAdmin.password)
   if (!isMatch) throw new Error('password salah')
 
-  const tokenAccess = generateAccessToken(user) 
-  const tokenRefresh = generateRefreshToken(user)
+    const dataAdmin = {
+      adminId: foundAdmin.adminId,
+      name: foundAdmin.name,
+      username: foundAdmin.username,
+      email: foundAdmin.email,
+      role: foundAdmin.role,
+      profileUrl : foundAdmin.profileUrl
+    }
 
-  await admin.updateAdmin(admin.adminId, {refres_token: tokenRefresh})
+  const tokenAccess = generateAccessToken(dataAdmin) 
+  const tokenRefresh = generateRefreshToken(dataAdmin)
+
+  await admin.updateAdmin(dataAdmin.adminId, {refresToken : tokenRefresh})
   
   return {
+    dataAdmin,
     tokenAccess,
     tokenRefresh
   }
 }
 
 const authRegister = async (dataAdmin) => {
-  const {adminId, name, username, password, confirmPassword, role, email} = dataAdmin 
-
-  const admin = await admin.findAdminByUsername(username)
-  if (admin) throw new Error('username sudah terdaftar')
+  const { name, username, password, confirmPassword, email} = dataAdmin 
+  const allAdmin = await admin.findAdmin()
+  if (allAdmin.find(admin => toLowerCase(admin.role) === 'admin super')) throw new Error('Admin super sudah terdaftar')
+  const role = 'admin super'
+  const adminByUsername = await admin.findAdminByUsername(username)
+  if (adminByUsername) throw new Error('username sudah terdaftar')
+  const adminByEmail = await admin.findAdminByEmail(email)
+  if (adminByEmail) throw new Error('email sudah terdaftar')
   if (password !== confirmPassword) throw new Error('password tidak sama')
   const hashPassword = await utilsHash.hashPassword(password)
 
-  const createAdmin = await admin.insertAdmin({adminId: adminId, name: name, username: username, password: hashPassword, role: role, email: email})
+  const createAdmin = await admin.insertAdmin({name: name, username: username, password: hashPassword, role: role, email: email})
   return createAdmin
 }
 
@@ -47,8 +61,8 @@ const authForgetPassword = async (email) => {
 }
 
 const authResetPassword = async (adminId, password, confirmpassword) => {
-  const admin = await admin.findAdminById(adminId)
-  if (!admin) throw new Error('user tidak ditemukan')
+  const foundAdmin = await admin.findAdminById(adminId)
+  if (!foundAdmin) throw new Error('user tidak ditemukan')
   if (password !== confirmpassword) throw new Error('password tidak sama')
   const hashPassword = await utilsHash.hashPassword(password)
 
@@ -56,10 +70,11 @@ const authResetPassword = async (adminId, password, confirmpassword) => {
   return updatePassword
 }
 
+
 module.exports = {
   authLogin,
   authRegister,
   authForgetPassword,
-  authResetPassword
+  authResetPassword,
   
 }

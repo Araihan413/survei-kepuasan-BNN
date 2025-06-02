@@ -1,5 +1,8 @@
 
 const authService = require('./auth.service')
+const utilsJwt = require('../utils/jwt')
+const admin = require('../admin/admin.repository')
+
 
 const login = async (req, res) => {
   try {
@@ -10,18 +13,23 @@ const login = async (req, res) => {
     res.cookie('refreshToken', loginAdmin.tokenRefresh, 
       {
         httpOnly: true, 
+        // secure: true,
+        sameSite: 'strict',
         maxAge: 24 * 60 * 60 * 1000
       })
     res.status(200).json({
       status: 'success',
       message: 'login sukses',
-      data: loginAdmin
+      data: {
+        accessToken: loginAdmin.tokenAccess,
+        admin: loginAdmin.dataAdmin
+      }
     })
 
   } catch (error) {
     res.status(401).json({
       status: "error",
-      message: "Something went wrong on the server",
+      message: error.message,
       error: error.message
     })
   }
@@ -30,9 +38,9 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
 try {
-  const {adminId, name, username, password, confirmPassword, role, email} = req.body;
+  const {name, username, password, confirmPassword, email} = req.body;
 
-  const registerUser = await authService.authRegister({adminId, name, username, password, confirmPassword, role, email})
+  const registerUser = await authService.authRegister({name, username, password, confirmPassword, email})
 
   res.status(201).json({
     status: 'success',
@@ -85,9 +93,21 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const logout = async (req, res) => {
+  // 1. Hapus cookie refreshToken
+  res.clearCookie('refreshToken');
+
+  // 2. Revoke refresh token di database (jika ada)
+  const token = req.cookies.refreshToken;
+  await admin.updateTokenRefresh(token);
+
+  res.json({ message: "Logout berhasil" });
+};
+
 module.exports = {
   login,
   register,
   forgetPassword,
-  resetPassword
+  resetPassword,
+  logout
 }

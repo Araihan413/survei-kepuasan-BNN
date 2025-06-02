@@ -12,7 +12,8 @@ router.get('/profile', verifyToken, async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'Profil admin berhasil diambil',
-      data: dataProfil
+      data: dataProfil,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -23,7 +24,7 @@ router.get('/profile', verifyToken, async (req, res) => {
   }
 })
 
-router.post('/change-password', verifyToken, async (req, res) => {
+router.post('/ganti-password', verifyToken, async (req, res) => {
   try {
     const {adminId} = req.admin
     const dataAdmin = req.body;
@@ -32,6 +33,7 @@ router.post('/change-password', verifyToken, async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'Password Berhasil diubah',
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -51,7 +53,8 @@ router.get('/', verifyToken, async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'data admin berhasil diambil',
-      data: admin
+      data: admin,
+      newAccessToken: res.get('New-Access-Token')
     })
 
   } catch (error) {
@@ -71,7 +74,8 @@ router.get('/:id', verifyToken, async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'data admin berhasil diambil',
-      data: admin
+      data: admin,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -82,14 +86,15 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 })
 
-router.post('/', verifyToken, async (req, res) => {
+router.post('/tambah-admin', verifyToken,requireRole('admin super'), async (req, res) => {
   try {
     const dataAdmin = req.body;
     const admin = await  adminService.createAdmin(dataAdmin)
     res.status(201).json({
       status: 'success',
       message: 'data admin berhasil dibuat',
-      data: admin
+      data: admin,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -108,7 +113,8 @@ router.patch('/:id', verifyToken, async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'data admin berhasil diupdate',
-      data: admin
+      data: admin,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -126,7 +132,8 @@ router.delete('/:id', verifyToken, requireRole('admin'), async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'data admin berhasil dihapus',
-      data: admin
+      data: admin,
+      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
