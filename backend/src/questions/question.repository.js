@@ -8,6 +8,23 @@ const findQuestionById = (id) => {
   })
   return question
 }
+
+const findQuestionByNameField = (field) => {
+  const question = prisma.question.findFirst({
+    where: {
+      respondentField: field
+    },
+    include: {
+      option: {
+        orderBy: {
+          displayOrder: 'asc'
+        }
+      }
+    }
+  })
+  return question
+}
+
 const findQuestions = () => {
   const question = prisma.question.findMany({
     where: {
@@ -66,5 +83,6 @@ module.exports = {
   insertQuestion,
   updateQuestionById,
   deleteQuestionById,
-  findQuestions
+  findQuestions,
+  findQuestionByNameField
 }

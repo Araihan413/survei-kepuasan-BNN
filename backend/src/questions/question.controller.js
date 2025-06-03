@@ -3,7 +3,7 @@ const router = express.Router();
 const questionService = require('./question.service')
 const {verifyToken} = require('../middleware/auth.middleware')
 
-router.get('/:id',verifyToken, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (typeof id !== 'number') throw Error('id harus angka')
@@ -18,8 +18,26 @@ router.get('/:id',verifyToken, async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
+    })
+  }
+})
+
+router.get('/:field/option', async (req, res) => {
+  try {
+    const field = req.params.field;
+    const questionByField = await questionService.getQuestionByNameField(field)
+    res.status(200).json({ 
+      status: 'success',
+      message: 'data question berhasil diambil',
+      data: questionByField,
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+      error: error
     })
   }
 })

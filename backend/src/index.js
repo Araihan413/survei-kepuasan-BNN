@@ -11,6 +11,7 @@ const dashboardController = require('./dashboard/dashboard.controller')
 const analysisController = require('./analysis/analysis.controller')
 const optionController = require('./option/option.controller')
 const serviceController = require('./service/service.controller')
+const answerController = require('./answer/answer.controller')
 
 const app = express();
 const dotenv = require('dotenv')
@@ -33,6 +34,7 @@ app.post('/api/auth/reset-password', verifyResetToken, authController.resetPassw
 app.post('/api/auth/logout', authController.logout)
 app.use('/api/option', optionController)
 app.use('/api/service', serviceController)
+app.use('/api/answer', answerController)
 
 
 app.get('/', (req, res) => {

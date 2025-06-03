@@ -6,12 +6,11 @@ const router = express.Router();
 router.get('/recent-respondents', async (req, res) => {
   try {
     const {dateAgo} = req.query
-    const name = req.query.name || null;
     const job = req.query.job || null;
-    const service = req.query.service || null;
-    const typeSurvey = req.query.typeSurvey || null;
+    const serviceId = req.query.serviceId || null;
+    const surveyId = req.query.surveyId || null;
 
-    const data = await dashboardService.getRecentRespondentsByFilter(dateAgo, name, job, service, typeSurvey)
+    const data = await dashboardService.getRecentRespondentsByFilter(dateAgo, job, serviceId, surveyId)
     res.status(200).json({
       status: 'success',
       message: 'Data dashboard berhasil diambil',

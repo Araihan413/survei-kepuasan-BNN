@@ -66,7 +66,6 @@ const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurvey
     setOpenActivateQuestion(true);
   }
   const closePopupActivate = () => {
-    console.log('close');
     setOpenActivateQuestion(false);
   }
   const handleSetNonActiveQuestion = (idQuestion, idSurvey) => {
@@ -80,9 +79,10 @@ const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurvey
           body: JSON.stringify({ isActive: false })
         });
         const data = await response.json();
-        console.log(data);
+        if (!response.ok) throw new Error(data.error);
         await fetchQuestionBySurveyId(idSurvey);
         onUpdateSurveys?.(questionActive);
+        return data
       } catch (error) {
         setError(error.message);
       }
@@ -217,7 +217,7 @@ const PopupSelectActiveQuestion = ({ open, closePopup, dataQuestion, onSaved }) 
       setLoading(false); // Selesai loading
     }
 
-    // Kirim ke backend pakai fetch/axios
+    // Kirim ke backend pakai fetch
   };
 
   const handleCheckboxChange = (id) => {

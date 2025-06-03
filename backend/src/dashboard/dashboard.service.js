@@ -1,3 +1,4 @@
+const { survey } = require('../config');
 const dashboardRepository = require('./dashboard.repository')
 const { startOfMonth, startOfDay, startOfWeek, subMonths, subWeeks, subDays, format } = require('date-fns')
 
@@ -56,17 +57,16 @@ const getRespondenByYear = async (year, serviceId) => {
 
   }
 
-const getRecentRespondentsByFilter = async (date, name, job, service, typeSurvey) => {
+const getRecentRespondentsByFilter = async (date, job, serviceId, surveyId) => {
   const startDate = getStartDate(date)
   const dataRespondents = await dashboardRepository.recentRespondents(startDate)
 
   const resultDataRespondents = []
 
 dataRespondents.forEach((respondent) => {
-  if (name && respondent.name !== name) return
   if (job && respondent.job !== job) return
-  if (service && respondent.service.name !== service) return
-  if (typeSurvey && lowercase(respondent.survey.title) !== lowercase(typeSurvey)) return
+  if (serviceId && respondent.service.serviceId !== parseInt(serviceId)) return
+  if (surveyId && respondent.survey.surveyId !== parseInt(surveyId)) return
   resultDataRespondents.push(respondent)
 })
   return resultDataRespondents
@@ -79,16 +79,6 @@ const getAvgScoreSurvey = async (date) => {
   return dataAvgScore
 }
 
-
-// const getDashboard = async (date, year) => {
-//   const startDate = getStartDate(date)
-
-//   const dataRespondents = await getRespondenByYear(year)
-//   const dataAvgScore = await getAvgScoreSurvey(startDate)
-//   const dataRecentRespondents = await getRecentRespondentsByFilter(startDate)
-
-//   return { dataRespondents, dataAvgScore, dataRecentRespondents }
-// }
 
 
 module.exports = { getRespondenByYear, getRecentRespondentsByFilter, getAvgScoreSurvey }

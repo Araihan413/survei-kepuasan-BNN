@@ -3,7 +3,7 @@ import Button from '../Elements/Button';
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { useEffect } from 'react';
 
-const FormQuestionSurvey = ({ dataListQuestion, dataListService, onSubmit, onNextPage, onPrevPage, pageActive, dataForm }) => {
+const FormQuestionSurvey = ({ dataListQuestion, dataListService, onSubmit, onNextPage, onPrevPage, pageActive, dataForm, loadingSubmit }) => {
   const formKey = `survey-answers`;
   const savedAnswers = JSON.parse(localStorage.getItem(formKey)) || {};
   const {
@@ -61,13 +61,30 @@ const FormQuestionSurvey = ({ dataListQuestion, dataListService, onSubmit, onNex
                 {/* pilihan atau jawaban */}
                 {item.questionType === "text" && (
                   <input
-                    type="text"
+                    type={item.respondentField === "age" || item.respondentField === "phoneNumber" ? "number" : "text"}
                     placeholder="Jawaban Anda"
                     className="outline-none border-b-1 border-gray-300 pt-2 pb-1 text-sm"
-                    {...register(item.isPersonal ? `${item.respondentField}` : item.isPersonal ? `${item.respondentField}` : `question-${item.questionId}`, {
-                      required: item.isRequired ? 'Jawaban tidak boleh kosong' : false,
-
-                    })}
+                    {...register(
+                      item.isPersonal ? item.respondentField : `question-${item.questionId}`,
+                      {
+                        required: item.isRequired ? "Jawaban tidak boleh kosong" : false,
+                        ...(item.respondentField === "age"
+                          ? {
+                            valueAsNumber: true,
+                            validate: {
+                              isNumber: (value) => !isNaN(value) || "Harus berupa angka",
+                              min: (value) => value > 0 || "Umur harus lebih dari 0",
+                              max: (value) => value <= 120 || "Umur tidak masuk akal (maks 120)",
+                            },
+                          }
+                          : item.respondentField === "phoneNumber"
+                            ? {
+                              valueAsNumber: true,
+                              validate: (value) => !isNaN(value) || "Harus berupa angka",
+                            }
+                            : {})
+                      }
+                    )}
                   />
                 )}
 
@@ -78,7 +95,7 @@ const FormQuestionSurvey = ({ dataListQuestion, dataListService, onSubmit, onNex
                         <input
                           type="radio"
                           name={item.isPersonal ? `${item.respondentField}` : `question-${item.questionId}`}
-                          value={opt.scaleValue}
+                          value={opt.optionId}
                           className="mt-1.5 cursor-pointer"
                           {...register(item.isPersonal ? `${item.respondentField}` : `question-${item.questionId}`, {
                             required: item.isRequired ? 'Jawaban tidak boleh kosong' : false,
@@ -133,7 +150,7 @@ const FormQuestionSurvey = ({ dataListQuestion, dataListService, onSubmit, onNex
             <div className="flex justify-start max-w-120 gap-4 w-full">
               {pageActive > 1 ? <Button type="button" text="Kembali" color="bg-white" style="text-sky-400 rounded-md" onClick={onPrevPage}></Button> : ''}
 
-              {dataForm.length === pageActive ? <Button type="button" text="Kirim" color="bg-sky-400" style="text-white rounded-md" onClick={handleSubmitForm}></Button> : <Button type="button" text="Berikutnya" color="bg-white" style="text-sky-400 rounded-md" onClick={nextPage}></Button>}
+              {dataForm.length === pageActive ? <Button type="button" text={loadingSubmit ? "Loading..." : "Kirim"} disabled={loadingSubmit} color="bg-sky-400" style="text-white rounded-md" onClick={handleSubmitForm}></Button> : <Button type="button" text="Berikutnya" color="bg-white" style="text-sky-400 rounded-md" onClick={nextPage}></Button>}
             </div>
           </div>
 

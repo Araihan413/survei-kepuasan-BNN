@@ -67,7 +67,6 @@ const Survey = () => {
   const [currentData, setCurrentData] = useState(null);
 
   const handleSubmit = (formData) => {
-    console.log('Data yang dikirim:', formData);
     // Lakukan API call atau update state di sini
     setIsPopupEditOpen(false);
   };

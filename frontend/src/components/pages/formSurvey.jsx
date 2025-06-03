@@ -14,6 +14,7 @@ const FormSurvey = () => {
   const [listService, setListService] = useState([]);
   const [allQuestion, setAllQuestion] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -81,9 +82,6 @@ const FormSurvey = () => {
     setPageActive(prev => prev - 1);
   };
 
-  if (loading) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-2xl text-sky-400">Loading...</p></div>;
-  if (error) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-lg text-red-400">Error: {error}</p></div>;
-
   const handleSubmit = async (response) => {
     const biodata = {};
     const answers = [];
@@ -106,13 +104,40 @@ const FormSurvey = () => {
         biodata[key] = value;
       }
     }
-
     const dataForm = {
       biodata,
       answers,
     }
+    const postData = async () => {
+      setLoadingSubmit(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`${urlApi}/answer`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataForm),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          const errorMsg = typeof data.error === 'string'
+            ? data.error
+            : JSON.stringify(data.error, null, 2);
+          throw new Error(errorMsg);
+        }
+        setLoadingSubmit(false);
+      } catch (error) {
+        setError(error.message);
+      }
+    }
+    postData();
     localStorage.removeItem("survey-answers");
   };
+
+  if (loading) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-2xl text-sky-400">Loading...</p></div>;
+  if (error) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-lg text-red-400">Error: {error}</p></div>;
 
   return (
     <>
@@ -137,7 +162,8 @@ const FormSurvey = () => {
             onNextPage={handleNextPage}
             onPrevPage={handlePrevPage}
             pageActive={pageActive}
-            dataForm={dataForm} />
+            dataForm={dataForm}
+            loadingSubmit={loadingSubmit} />
         </div>
       </section>
     </>

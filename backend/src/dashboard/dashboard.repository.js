@@ -58,7 +58,8 @@ const recentRespondents = (startDate) => {
       service: {
         select: {
           serviceId: true,
-          name: true
+          name: true,
+          label: true
         }
       }
     },

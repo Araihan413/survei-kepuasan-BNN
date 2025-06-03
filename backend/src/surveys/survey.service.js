@@ -11,12 +11,6 @@ const getDetailSurveyById = async (id) => {
   return survey
 }
 
-// const getAllQuestionIsActive = async (isActive) => {
-//   const survey = await surveyRepository.findQuestionsInSurvey()
-//   const questionActive = survey.question.filter(question => question.isActive === isActive)
-//   return questionActive
-// }
-
 const getSurveyIncludeQuestion = async (id) => {
   await getDetailSurveyById(id)
   const survey = await surveyRepository.findSurveyIncludeQuestion(id)
@@ -27,7 +21,6 @@ const getAllSurvey = async () => {
   const survey = await surveyRepository.findSurveys()
   return survey
 }
-
 
 
 const insertSurvey = async (dataSurvey) => {

@@ -43,7 +43,7 @@ const findSurveyIncludeQuestion = async (id) => {
         include: {
           option: {
             orderBy: {
-              scaleValue: 'desc'
+              displayOrder: 'asc'
             }
           }
         }

@@ -6,6 +6,12 @@ const getQuestionById = async (id) => {
   if (!question) throw Error('data question tidak ditemukan')
   return question
 }
+
+const getQuestionByNameField = async (field) => {
+  const question = await questionRepository.findQuestionByNameField(field)
+  if (!question) throw Error('data question tidak ditemukan')
+  return question
+}
 const getAllQuestion = async () => {
   const question = await questionRepository.findQuestions()
   return question
@@ -60,5 +66,6 @@ module.exports = {
   createQuestion,
   updateQuestionById,
   deleteQuestionById,
-  getAllQuestion
+  getAllQuestion,
+  getQuestionByNameField 
 }
