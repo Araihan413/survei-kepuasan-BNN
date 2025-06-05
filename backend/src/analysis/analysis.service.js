@@ -1,8 +1,11 @@
 const analysisRepository = require('./analysis.repository')
 const { startOfMonth, startOfDay, startOfWeek, subMonths, subWeeks, subDays } = require('date-fns')
+const optionRepository = require('../option/option.repository')
+
 
 const getSurveyAnalysis = async (surveyId, rangeDate) => {
   const now = new Date();
+
   switch (rangeDate) {
     case 'daily':
       startDateSearch = subDays(startOfDay(now), 1);
@@ -52,7 +55,7 @@ const getSurveyAnalysis = async (surveyId, rangeDate) => {
       genders[respondent.gender] = (genders[respondent.gender] || 0) + 1;
 
       // Layanan
-      services[respondent.service.serviceType] = (services[respondent.service.serviceType] || 0) + 1;
+      services[respondent.service.label] = (services[respondent.service.label] || 0) + 1;
 
       // Pekerjaan
       jobs[respondent.job] = (jobs[respondent.job] || 0) + 1;
@@ -66,7 +69,7 @@ const getSurveyAnalysis = async (surveyId, rangeDate) => {
 
   dataQuestions.forEach((question) => {
 
-    if (question.questionType == 'scale') {
+    if (question.questionType == 'skala') {
       const analysisByQuestionTypeScale = {
         id: question.questionId,
         questionText: question.questionText,
@@ -116,28 +119,30 @@ const getSurveyAnalysis = async (surveyId, rangeDate) => {
       const answers = question.answer;
       answers.forEach((answerText) => {
         analysisByQuestionTypeText.countRespondent++;
-        responsesText.push(answerText.answerText || "-")
+        analysisByQuestionTypeText.responsesText.push(answerText.answerText || "-")
       });
 
       outputAnalysisText.push(analysisByQuestionTypeText)
-    
-    } else if (question.questonType == 'option') {
-      const analysisByQuestionTypeOption = {
-        id: question.questionId,
-        questionText: question.questionText,
-        displayOrder: question.displayOrder,
-        countRespondent: 0,
-        responsesOption: {}
+    }  else if (question.questionType == 'opsi') {
+        const analysisByQuestionTypeOption = {
+          id: question.questionId,
+          questionText: question.questionText,
+          displayOrder: question.displayOrder,
+          countRespondent: 0,
+          responsesOption: {}
+        }
+        const answers = question.answer;
+        answers.forEach((answerOption) => {
+          analysisByQuestionTypeOption.countRespondent++;
+          const optionText = answerOption.option.optionText;
+          analysisByQuestionTypeOption.responsesOption[optionText] = (analysisByQuestionTypeOption.responsesOption[optionText] || 0) + 1;
+        });
+  
+        outputAnalysisOption.push(analysisByQuestionTypeOption)
       }
-      const answers = question.answer;
-      answers.forEach((answerOption) => {
-        analysisByQuestionTypeOption.countRespondent++;
-        const optionText = answerOption.option.optionText;
-        analysisByQuestionTypeOption.responsesOption[optionText] = (analysisByQuestionTypeOption.responsesOption[optionText] || 0) + 1;
-      });
-
-      outputAnalysisOption.push(analysisByQuestionTypeOption)
-    }
+    
+    
+    
     
   });
 
@@ -146,23 +151,27 @@ const getSurveyAnalysis = async (surveyId, rangeDate) => {
     analysis.ranking = index + 1
   })
 
+  const sortedAnalysisByDisplayOrder = [...sortedAnalysisByAvg].sort((a, b) => a.displayOrder - b.displayOrder);
+
+
   // ! handle pertanyaan text
 
   const result = {
-    surveyTitle: respondentsBySurveyId[0].survey.title,
-    averageScore: avgScore.averageScore,
+    surveyTitle: respondentsBySurveyId[0]?.survey?.title?? '-',
+    averageScore: avgScore[0]?.averageScore ?? 0,
     distribution: {
       ageGroups,
       genders,
       services,
       jobs,
     },
-    questionScaleAnalysis : sortedAnalysisByAvg,
+    questionScaleAnalysis : sortedAnalysisByDisplayOrder,
     questionTextAnalysis: outputAnalysisText,
     questionOptionAnalysis: outputAnalysisOption
   }
 
   return result
 }
+
 
 module.exports = {getSurveyAnalysis}

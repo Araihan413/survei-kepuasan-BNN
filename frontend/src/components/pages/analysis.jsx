@@ -15,8 +15,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const Analysis = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const surveyId = searchParams.get('id');
+  // const [searchParams] = useSearchParams();
+  // const surveyParamId = searchParams.get('id');
   const ref = useRef(null);
 
   // ? data untuk option filter berdasarkan waktu
@@ -29,9 +29,67 @@ const Analysis = () => {
     { value: '12month', label: '12 Bulan' },
   ]
   // ? data untuk menetukan jumlah pilihan survey
-  const dataListSurvey = [];
-  const [surveyActive, setSurveiActive] = useState(dataListSurvey[0].id)
+  const [dataListSurveyActive, setDataListSurveyActive] = useState([]);
+  const [surveyActive, setSurveyActive] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState(optionFilterValue[3].value);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [dataDiagramAvg, setDataDiagramAvg] = useState([]);
+  const [dataPieChart, setDataPieChart] = useState([]);
+  const [dataTableRanking, setDataTableRanking] = useState({});
+  const [dataQuestionTableText, setDataQuestionTableText] = useState({});
+  const [dataQuestionOpsi, setDataQuestionOpsi] = useState([]);
+
+  const headerPertanyaanText = () => {
+    const header = ['No.']
+    dataQuestionTableText.dataSurvei.analisis.forEach((item) => header.push(item.pertanyaan))
+    return header
+  }
+
+  // ? dataHeader untuk table ranking pertanyaan
+  const dataHeaderRanking = ["No", "Pertanyaan", "4", "3", "2", "1", "Rata-Rata", "Ranking"];
+
+  const pieChartColors = [
+    '#4E79A7', // biru
+    '#F28E2B', // oranye
+    '#E15759', // merah lembut
+    '#76B7B2', // hijau kebiruan
+    '#59A14F', // hijau
+    '#EDC949', // kuning
+    '#AF7AA1', // ungu
+    '#FF9DA7', // pink lembut
+    '#9C755F', // coklat lembut
+    '#BAB0AC', // abu-abu netral
+    '#D37295', // pink-ungu
+    '#FABFD2', // pink pastel
+    '#B07AA1', // ungu gelap
+    '#86BCB6', // hijau pastel
+    '#FFA07A'  // salmon
+  ];
+
+  const chartLabelMap = {
+    ageGroups: "Usia",
+    genders: "Jenis Kelamin",
+    services: "Layanan",
+    jobs: "Pekerjaan"
+  };
+
+  // ? untuk mengambil semua option pada suatu pertanyaan
+  const listOption = async (questionId) => {
+    try {
+      const response = await fetch(`${urlApi}/option/${questionId}`);
+      const dataOption = await response.json();
+
+      if (!response.ok) throw new Error(dataOption.message || dataOption.error);
+
+      return dataOption.data.map(item => item.optionText);
+    } catch (err) {
+      setError(err.message);
+      return [];
+    }
+  };
+
+
   const downloadImage = () => {
     html2canvas(ref.current, { backgroundColor: null }).then(canvas => {
       const a = document.createElement("a");
@@ -41,292 +99,263 @@ const Analysis = () => {
     });
   };
 
+  const convertDistributionToChart = (distribution) => {
+    let colorIndex = 0;
+
+    const getNextColor = () => {
+      const color = pieChartColors[colorIndex % pieChartColors.length];
+      colorIndex++;
+      return color;
+    };
+
+    return Object.entries(distribution).map(([key, valueObj]) => {
+      const dataArray = Object.entries(valueObj).map(([label, count]) => ({
+        id: label,
+        value: count,
+        color: getNextColor()
+      }));
+
+      return {
+        namaChart: chartLabelMap[key] || key,
+        data: dataArray
+      };
+    });
+  };
+
+  const convertDataToTableRanking = (dataTable, idSurvey, namaSurvey) => {
+    const tableRanking = {
+      dataSurvei: {
+        id: idSurvey,
+        nama: namaSurvey,
+        analisis: dataTable.map((item, index) => ({
+          id: item.id,
+          pertanyaan: item.questionText,
+          nilai: Object.entries(item.ratings)
+            .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Urutkan dari nilai terbesar ke terkecil
+            .map(([key, value]) => ({
+              id: parseInt(key),
+              nilai: parseInt(key),
+              jumlah: value
+            })),
+          ranking: item.ranking,
+          avg: item.avgAnswer
+        }))
+      }
+    };
+    return tableRanking
+  }
+  const convertTextAnalysis = (rawData, idSurvey, titleSurvey) => {
+    return {
+      dataSurvei: {
+        id: idSurvey,
+        title: titleSurvey,
+        jumlahResponden: rawData.length > 0 ? rawData[0].countRespondent : 0,
+        analisis: rawData.map((item, index) => ({
+          id: index + 1,
+          pertanyaan: item.questionText,
+          text: item.responsesText
+        }))
+      }
+    };
+  };
+
+  const convertOpsiAnalysis = async (rawData) => {
+    const masterOptions = await Promise.all(rawData.map(item => listOption(item.id)));
+    const result = rawData.map((ques, index) => {
+      const formatted = masterOptions[index].map(opt => {
+        const label = opt.charAt(0).toUpperCase() + opt.slice(1).toLowerCase();
+        const value = ques.responsesOption[label] ?? 0;
+        return { label, value };
+      });
+
+      return {
+        ...ques,
+        responsesOption: formatted
+      };
+    });
+    console.log("bismillah", result)
+    return result
+
+  };
+
+  // 🔹 Ambil daftar survey (kecuali 'Biodata')
   const listSurvey = async () => {
     try {
       const response = await fetch(`${urlApi}/survey`);
-      if (!response.ok) throw new Error('Gagal mengambil data survey');
       const dataSurvey = await response.json();
-      return dataSurvey?.data || [];
-    } catch (error) {
-      console.error(error);
-      throw error.message;
+      if (!response.ok) throw new Error(dataSurvey.message || dataSurvey.error);
+
+      const filtered = dataSurvey.data.filter(item => item.title.toLowerCase() !== "biodata");
+      setDataListSurveyActive(filtered);
+      return filtered;
+    } catch (err) {
+      setError(err.message);
+      return [];
     }
-  }
+  };
 
-
+  // 🔹 Analisis satu survey berdasarkan ID dan range tanggal
   const analysisSurvey = async (id, date) => {
     try {
-      const response = await fetch(`${urlApi}/analysis/survey/${id}?date=${date}`);
+      const response = await fetch(`${urlApi}/analysis/${id}?rangeDate=${date}`);
       const dataAnalysis = await response.json();
+
       if (!response.ok) throw new Error(dataAnalysis.message || dataAnalysis.error);
-      return dataAnalysis;
-    } catch (error) {
-      console.error(error);
-      throw error.message;
+
+      const resultData = dataAnalysis.data;
+
+      // Cek apakah data kosong/null
+      if (!resultData || Object.keys(resultData).length === 0) {
+        throw new Error("Data survei tidak tersedia untuk range waktu tersebut.");
+      }
+
+      //? Set diagram rata-rata
+      setDataDiagramAvg({
+        avgValue: resultData.averageScore ?? 0,
+        maxValue: 5,
+        nameSurvey: resultData.surveyTitle ?? "-"
+      });
+
+      // ? Pie chart distribusi (misalnya usia, gender, dst)
+      const dataPieChart = convertDistributionToChart(resultData.distribution ?? {});
+      setDataPieChart(dataPieChart);
+
+      //? Tabel pertanyaan skala
+      const dataTableRanking = convertDataToTableRanking(
+        resultData.questionScaleAnalysis ?? [],
+        id,
+        resultData.surveyTitle ?? "-"
+      );
+      setDataTableRanking(dataTableRanking);
+
+      //? Tabel pertanyaan teks
+      if (resultData.questionTextAnalysis?.length > 0) {
+        const dataQuestionTableText = convertTextAnalysis(
+          resultData.questionTextAnalysis,
+          id,
+          resultData.surveyTitle ?? "-"
+        );
+        setDataQuestionTableText(dataQuestionTableText);
+      } else {
+        setDataQuestionTableText({});
+      }
+
+      //? Tabel pertanyaan opsi
+      const processOptionData = async () => {
+        if (resultData.questionOptionAnalysis?.length > 0) {
+          const dataQuestionOpsi = await convertOpsiAnalysis(resultData.questionOptionAnalysis);
+          setDataQuestionOpsi(dataQuestionOpsi);
+          console.log(dataQuestionOpsi);
+        } else {
+          setDataQuestionOpsi([]);
+        }
+      };
+
+      processOptionData();
+
+    } catch (err) {
+      setError(err.message || "Terjadi kesalahan saat memuat analisis.");
+
+      // Reset state jika perlu saat error
+      setDataDiagramAvg(null);
+      setDataPieChart(null);
+      setDataTableRanking([]);
+      setDataQuestionTableText({});
+      setDataQuestionOpsi([]);
     }
-  }
+  };
 
-  const [dataAvgSurvey, setDataAvgSurvey] = useState({});
-  // ? data untuk diagram rata rata
 
-  // ? data untuk pie chart
-  const [dataPieChart, setDataPieChart] = useState([]);
-  const colorPieChart = ['#00FFDE', '#CA7842', '#3eb8ff', '#ffaf3e', '#7eec08', '#08eca6', '#8108ec', '#FF90BB', '#A4B465', '#FFDBDB', '#FE7743', '#E9F5BE', '#7AE2CF', '#547792', '#328E6E',]
-  // const dataPieChartr = [
-  //   {
-  //     namaChart: "Usia",
-  //     data: [{
-  //       color: '#3eb8ff',
-  //       id: 'java',
-  //       value: 578
-  //     },
-  //     {
-  //       color: '#ffaf3e',
-  //       id: 'haskell',
-  //       value: 250
-  //     },
-  //     {
-  //       color: '#7eec08',
-  //       id: 'sosialisasi P4GN',
-  //       value: 503
-  //     },
-  //     {
-  //       color: '#08eca6',
-  //       id: 'Mahasiswa/Pelajar',
-  //       value: 449
-  //     },
-  //     {
-  //       color: '#8108ec',
-  //       id: 'python',
-  //       value: 276
-  //     }]
-  //   },
-  //   {
-  //     namaChart: "Usia",
-  //     data: [{
-  //       color: '#3eb8ff',
-  //       id: 'java',
-  //       value: 578
-  //     },
-  //     {
-  //       color: '#ffaf3e',
-  //       id: 'haskell',
-  //       value: 250
-  //     },
-  //     {
-  //       color: '#7eec08',
-  //       id: 'sosialisasi P4GN',
-  //       value: 503
-  //     },
-  //     {
-  //       color: '#08eca6',
-  //       id: 'Mahasiswa/Pelajar',
-  //       value: 449
-  //     },
-  //     {
-  //       color: '#8108ec',
-  //       id: 'python',
-  //       value: 276
-  //     },]
-  //   },
-  //   {
-  //     namaChart: "Usia",
-  //     data: [{
-  //       color: '#3eb8ff',
-  //       id: 'java',
-  //       value: 578
-  //     },
-  //     {
-  //       color: '#ffaf3e',
-  //       id: 'haskell',
-  //       value: 250
-  //     },
-  //     {
-  //       color: '#7eec08',
-  //       id: 'sosialisasi P4GN',
-  //       value: 503
-  //     },
-  //     {
-  //       color: '#08eca6',
-  //       id: 'Mahasiswa/Pelajar',
-  //       value: 449
-  //     },
-  //     {
-  //       color: '#8108ec',
-  //       id: 'python',
-  //       value: 276
-  //     },]
-  //   },
-  //   {
-  //     namaChart: "Usia",
-  //     data: [{
-  //       color: '#3eb8ff',
-  //       id: 'java',
-  //       value: 578
-  //     },
-  //     {
-  //       color: '#ffaf3e',
-  //       id: 'haskell',
-  //       value: 250
-  //     },
-  //     {
-  //       color: '#7eec08',
-  //       id: 'sosialisasi P4GN',
-  //       value: 503
-  //     },
-  //     {
-  //       color: '#08eca6',
-  //       id: 'Mahasiswa/Pelajar',
-  //       value: 449
-  //     },
-  //     {
-  //       color: '#8108ec',
-  //       id: 'python',
-  //       value: 276
-  //     },]
-  //   },
-  // ];
+  // 🔹 Fetch pertama kali saat komponen mount
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        const surveys = await listSurvey();
+        if (surveys.length > 0) {
+          const firstSurveyId = surveys[0].surveyId;
+          setSurveyActive(firstSurveyId);
+          navigate(`/analisis?id=${firstSurveyId}`);
+          await analysisSurvey(firstSurveyId, selectedFilter);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // ? data untuk table ranking pertanyaa
+    fetchInitialData();
+  }, []);
 
-  const [dataTableRanking, setDataTableRanking] = useState({});
-  const tableRanking = {
-    dataAnalisis: {
-      id: 1,
-      name: 'Survei Presepsi Kualitas Pelayanan',
-      pertanyaan: [
-        {
-          id: 1,
-          pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-          nilai: [
-            { id: 1, nilai: 4, jumlah: 100 },
-            { id: 2, nilai: 3, jumlah: 20 },
-            { id: 3, nilai: 2, jumlah: 4 },
-            { id: 4, nilai: 1, jumlah: 1 }
-          ],
-          ranking: 2,
-          avg: 3.45
-        },
-        {
-          id: 2,
-          pertanyaan: "Bagaimana pendapat anda teknologi pada saat ini?",
-          nilai: [
-            { id: 1, nilai: 4, jumlah: 69 },
-            { id: 2, nilai: 3, jumlah: 12 },
-            { id: 3, nilai: 2, jumlah: 4 },
-            { id: 4, nilai: 1, jumlah: 0 }
-          ],
-          ranking: 2,
-          avg: 3.45
-        },
-      ]
-    }
-  }
+  // 🔹 Update data saat `surveyActive` atau `selectedFilter` berubah
+  useEffect(() => {
+    if (!surveyActive) return;
+    const fetchOnChange = async () => {
+      setLoading(true);
+      try {
+        await analysisSurvey(surveyActive, selectedFilter);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOnChange();
+  }, [surveyActive, selectedFilter]);
+
 
   // ? data untuk table pertanyaan text
-  const tablePertanyaanText = {
-    dataAnalisis: {
-      id: 1,
-      name: 'Survei Presepsi Kualitas Pelayanan',
-      countRespondent: 3,
-      pertanyaan: [
-        {
-          id: 1,
-          pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-          text: [
-            "aku kurang enak ketika jshdas",
-            "kurang jelas atas pelayanan nya",
-            "nunggu nya sejam njir lah"
-          ],
-        },
-        {
-          id: 2,
-          pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-          text: [
-            "tidak",
-            "-",
-            "aks"
-          ],
-        },
-        {
-          id: 3,
-          pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-          text: [
-            "tidak",
-            "-",
-            "aks"
-          ],
-        },
-        {
-          id: 4,
-          pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-          text: [
-            "tidak",
-            "-",
-            "aks"
-          ],
-        },
-      ]
-    }
-  }
-
-  useEffect(() => {
-    const fetchDataListSurvey = async () => {
-      try {
-        const dataSurvey = await listSurvey();
-        dataListSurvey.push(...dataSurvey);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    const fetchDataAnalysisSurvey = async () => {
-      try {
-        const dataAnalysis = await analysisSurvey(surveyId, selectedFilter);
-        setDataAvgSurvey({
-          avgValue: dataAnalysis.averageScore,
-          maxValue: 5,
-          nameSurvey: dataAnalysis.surveyTitle
-        })
-
-        const chartLabelMap = {
-          ageGroups: "Usia",
-          genders: "Jenis Kelamin",
-          services: "Layanan",
-          jobs: "Pekerjaan"
-        };
-        // Konversi menjadi array pie chart
-        let colorIndex = 0;
-
-        const getNextColor = (colors) => {
-          const color = colors[colorIndex % colors.length];
-          colorIndex++;
-          return color;
-        };
-
-        const dataPieChartr = Object.entries(rawData.distribution).map(([key, value]) => ({
-          namaChart: chartLabelMap[key] || key,
-          data: Object.entries(value).map(([label, count]) => ({
-            id: label,
-            value: count,
-            color: getNextColor(colorPieChart),
-          }))
-        }));
-
-        setDataPieChart(dataPieChartr);
-
-        dataAnalysis.distribution.map((item, index) => {
-
-        })
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }, [surveyId, selectedFilter])
-
+  // const tablePertanyaanText = {
+  //   dataAnalisis: {
+  //     id: 1,
+  //     title: 'Survei Presepsi Kualitas Pelayanan',
+  //     countRespondent: 3,
+  //     pertanyaan: [
+  //       {
+  //         id: 1,
+  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
+  //         text: [
+  //           "aku kurang enak ketika jshdas",
+  //           "kurang jelas atas pelayanan nya",
+  //           "nunggu nya sejam njir lah"
+  //         ],
+  //       },
+  //       {
+  //         id: 2,
+  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
+  //         text: [
+  //           "tidak",
+  //           "-",
+  //           "aks"
+  //         ],
+  //       },
+  //       {
+  //         id: 3,
+  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
+  //         text: [
+  //           "tidak",
+  //           "-",
+  //           "aks"
+  //         ],
+  //       },
+  //       {
+  //         id: 4,
+  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
+  //         text: [
+  //           "tidak",
+  //           "-",
+  //           "aks"
+  //         ],
+  //       },
+  //     ]
+  //   }
+  // }
   // ? unduh data ke dalam excel
   // ? data yang masuk harus berupa array of objects
-  const exportExcel = (data, fileName) => {
-    const worksheet = XLSX.utils.json_to_sheet(data); // Mengubah data JSON ke worksheet
+  const exportExcel = (data, fileName, headers) => {
+    const worksheet = XLSX.utils.json_to_sheet(data, { header: headers }); // Mengubah data JSON ke worksheet
     const workbook = XLSX.utils.book_new(); // Membuat workbook baru
     XLSX.utils.book_append_sheet(workbook, worksheet, "Data"); // Menambahkan worksheet ke workbook
 
@@ -336,39 +365,46 @@ const Analysis = () => {
     saveAs(file, `${fileName}.xlsx`); // Mengunduh file
   };
 
-  const headerPertanyaanText = () => {
-    const header = ['No.']
-    tablePertanyaanText.dataAnalisis.pertanyaan.map((item) => header.push(item.pertanyaan))
-    return header
-  }
-  // ? dataHeader untuk table ranking pertanyaan
-  const dataHeaderRanking = ["No", "Pertanyaan", "4", "3", "2", "1", "Rata-Rata", "Ranking"];
 
   // ? data untuk table bar horizontal
-
-  const dataBarHorizontal = [
-    {
-      label: 'Ya',
-      value: 25,
-    },
-    {
-      label: 'Tidak',
-      value: 15,
-    },
-  ];
-
+  // const dataBarHorizontal = [
+  //   {
+  //     label: 'Ya',
+  //     value: 25,
+  //   },
+  //   {
+  //     label: 'Tidak',
+  //     value: 15,
+  //   },
+  // ];
 
   const handleDropdownChange = (event) => {
     return setSelectedFilter(event.target.value);
   }
 
   const handleChangeSurvey = (id) => {
-    navigate(`/analisis?id=${id}`);
-    setSurveiActive(id);
+    navigate(`/analisis?id=${id}`)
+    setSurveyActive(id);
+  }
+
+  const handleDownloadTableRanking = (dataTable) => {
+    const headers = ['No', 'Pertanyaan', '4', '3', '2', '1', 'Rata-Rata', 'Ranking'];
+    const dataExcel = dataTable.dataSurvei.analisis.map((item, index) => ({
+      'No': index + 1,
+      'Pertanyaan': item.pertanyaan,
+      '4': item.nilai[0].jumlah,
+      '3': item.nilai[1].jumlah,
+      '2': item.nilai[2].jumlah,
+      '1': item.nilai[3].jumlah,
+      'Rata-Rata': item.avg,
+      'Ranking': item.ranking
+    }));
+    exportExcel(dataExcel, 'Table-Ranking', headers);
+
   }
   return (
     <>
-      <section className="py-10 px-5">
+      <section className="py-5 px-5">
         <div className="relative bg-white rounded-xl shadow-md px-5 pt-5 pb-10">
 
           <div>
@@ -381,20 +417,20 @@ const Analysis = () => {
           </div>
 
           <div className="flex flex-wrap justify-center gap-5 mt-8">
-            {dataListSurvey.map((pelayanan) => (
-              <div className="mt-5" key={pelayanan.id} onClick={() => handleChangeSurvey(pelayanan.id)}>
-                <h1 className={`text-sm border-2 text-center border-biru-tua shadow-md w-max cursor-pointer py-3 min-w-[250px] rounded-2xl ${surveyId === pelayanan.id ? 'bg-biru-tua text-white font-semibold' : ' font-normal bg-white text-gray-700'}`}>{pelayanan.name}</h1>
+            {dataListSurveyActive.map((survey, index) => (
+              <div className="mt-5" key={index} onClick={() => handleChangeSurvey(survey.surveyId)}>
+                <h1 className={`text-sm border-2 text-center border-biru-tua shadow-md w-max cursor-pointer py-3 min-w-[250px] rounded-2xl ${surveyActive === survey.surveyId ? 'bg-biru-tua text-white font-semibold' : ' font-normal bg-white text-gray-700'}`}>{survey.title}</h1>
               </div>
             ))}
           </div>
 
           <div className="mt-20 flex justify-center">
-            <CircleProgressbar dataSurvey={dataAvgSurvey} width={'max-w-[280px]'} sizeFont='text-lg'></CircleProgressbar>
+            <CircleProgressbar dataSurvey={dataDiagramAvg} width={'max-w-[280px]'} sizeFont='text-xl'></CircleProgressbar>
           </div>
 
           <div className="flex flex-wrap justify-center gap-10 items-center mt-10">
             {dataPieChart.map((chart, index) => (
-              <div className="bg-white relative rounded-md border-[1px] border-gray-700/60" key={index}>
+              <div className="bg-white relative rounded-md border-[1px] border-gray-700/60 shadow-xl" key={index}>
                 <div className="absolute top-5 right-5">
                   < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload />} onClick={downloadImage} />
                 </div>
@@ -410,37 +446,48 @@ const Analysis = () => {
             ))}
           </div>
 
-          <div className="mt-20 relative w-max">
+          <div className="mt-20 flex w-full flex-col items-center">
             <div className="text-center mb-20">
-              <h1 className="text-lg font-bold text-gray-700">Analisis Jawaban Hasil {dataListSurvey.find(item => item.id === setSurveiActive).name || '-'}</h1>
+              <h1 className="text-lg font-bold text-gray-700">Analisis Jawaban Hasil {dataListSurveyActive.filter(item => item.surveyId === surveyActive)[0]?.title || '-'}</h1>
             </div>
-            <div className="flex gap-2 absolute top-15 right-0">
-              <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
-              < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
-            </div>
-            <RankingTable data={tableRanking} header={dataHeaderRanking} width="w-[850px]"></RankingTable>
-          </div>
-
-          <div className="mt-20 pt-15 relative flex justify-center w-max">
-            <div className="flex gap-2 absolute top-3 right-0">
-              <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
-              < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
-            </div>
-            <ResponsesTable data={tablePertanyaanText} header={headerPertanyaanText()} width="w-[850px]" />
-          </div>
-
-          <div className="mt-20 pt-15 relative w-max">
-            <div className="flex gap-2 absolute top-3 right-0">
-              <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
-              < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
-            </div>
-            <div className="border-1 border-gray-700/60 rounded-xl py-5 shadow-md">
-              <div className="pl-5">
-                <h1 className="text-md font-semibold text-gray-700">Bagaimana pendapat anda tentang layanan pelayanan di P4GN?</h1>
+            <div className="relative">
+              <div className="flex gap-2 absolute -top-15 right-0 ">
+                <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
+                < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={() => handleDownloadTableRanking(dataTableRanking)} text="Unduh" style="text-xs px-4" />
               </div>
-              <BarChartHorizontal data={dataBarHorizontal} height="h-[200px]" width="w-[850px]" />
+              <div>
+                <RankingTable data={dataTableRanking} header={dataHeaderRanking} width="w-[850px]"></RankingTable>
+              </div>
             </div>
           </div>
+
+          {Object.keys(dataQuestionTableText).length === 0 ? null :
+            <div className="mt-20 pt-15 flex w-full flex-col items-center">
+              <div className="relative">
+                <div className="flex gap-2 absolute -top-15 right-0">
+                  <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
+                  < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
+                </div>
+                <div>
+                  <ResponsesTable data={dataQuestionTableText} header={headerPertanyaanText()} width="w-[850px]" />
+                </div>
+              </div>
+            </div>
+          }
+          {Object.keys(dataQuestionOpsi).length === 0 ? null :
+            dataQuestionOpsi.map((dataChart, index) => (
+
+              <div key={index} className="mt-20 pt-15 relative w-max">
+                <div className="flex gap-2 absolute top-3 right-0">
+                  <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
+                  < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
+                </div>
+                <div className="border-1 border-gray-700/60 rounded-xl p-5 pl-0 box-border shadow-md">
+                  <BarChartHorizontal data={dataChart} height="h-[200px]" width="w-[850px]" />
+                </div>
+              </div>
+            ))
+          }
         </div>
       </section >
     </>

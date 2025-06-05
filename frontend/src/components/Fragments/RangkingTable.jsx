@@ -4,6 +4,9 @@ import {
 } from '@mui/material';
 
 const RangkingTable = ({ data, header, width }) => {
+  const lengthQuestion = data?.dataSurvei?.analisis?.length
+  const warningRanking = 3
+  const lowRanking = data?.dataSurvei?.analisis?.filter(row => row.ranking > (lengthQuestion - warningRanking))
   return (
     <>
       <div className={`overflow-x-auto ${width}`}>
@@ -17,15 +20,26 @@ const RangkingTable = ({ data, header, width }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.dataAnalisis.pertanyaan.map((row, index) => (
-                <TableRow key={row.id}>
-                  <TableCell sx={{ borderRight: '1px solid #ccc' }}>{index + 1 + "."}</TableCell>
-                  <TableCell sx={{ borderRight: '1px solid #ccc' }}>{row.pertanyaan}</TableCell>
+              {data?.dataSurvei?.analisis?.map((row, index) => (
+                <TableRow key={row.id} sx={{
+                  backgroundColor:
+                    lowRanking.some(item => item.id === row.id)
+                      ? '#ff6244 ' // hijau muda
+                      : "#ffffff",
+                  color:
+                    lowRanking.some(item => item.id === row.id)
+                      ? '#ffffff' // hijau muda 
+                      : "#000000"
+                }}>
+                  <TableCell sx={{
+                    borderRight: '1px solid #ccc', color: lowRanking.some(item => item.id === row.id) ? '#ffffff' : "#000000"
+                  }}>{index + 1 + "."}</TableCell>
+                  <TableCell sx={{ borderRight: '1px solid #ccc', color: lowRanking.some(item => item.id === row.id) ? '#ffffff' : "#000000" }}>{row.pertanyaan}</TableCell>
                   {row.nilai.map((item, index) => (
-                    <TableCell align="center" key={index} sx={{ borderRight: '1px solid #ccc' }}>{item.jumlah}</TableCell>
+                    <TableCell align="center" key={`${row.id}-${item.id}`} sx={{ borderRight: '1px solid #ccc', color: lowRanking.some(item => item.id === row.id) ? '#ffffff' : "#000000" }}>{item.jumlah}</TableCell>
                   ))}
-                  <TableCell sx={{ borderRight: '1px solid #ccc', textAlign: 'center' }}>{row.avg}</TableCell>
-                  <TableCell sx={{ borderRight: '1px solid #ccc', textAlign: 'center' }}>{row.ranking}</TableCell>
+                  <TableCell sx={{ borderRight: '1px solid #ccc', textAlign: 'center', color: lowRanking.some(item => item.id === row.id) ? '#ffffff' : "#000000" }}>{row.avg}</TableCell>
+                  <TableCell sx={{ borderRight: '1px solid #ccc', textAlign: 'center', color: lowRanking.some(item => item.id === row.id) ? '#ffffff' : "#000000" }}>{row.ranking}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

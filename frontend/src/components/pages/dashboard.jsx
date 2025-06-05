@@ -211,8 +211,8 @@ const Dashborad = () => {
 
   return (
     <>
-      <div className="py-10 px-5">
-        <section className="grid grid-cols-2 gap-5 w-full pb-10 ">
+      <div className="py-5 px-5">
+        <section className="grid grid-cols-2 gap-5 w-full pb-5 ">
           <div className="bg-white shadow-lg py-5 relative rounded-xl col-span-1">
             <div className="pl-5 mb-8">
               <h1 className="text-lg font-bold text-gray-700">Hasil Analisis</h1>
@@ -245,7 +245,7 @@ const Dashborad = () => {
             </div>
           </div>
         </section>
-        <section className="flex flex-col gap-5 w-full">
+        <section className="flex w-full">
           <div className="bg-white p-5 rounded-xl shadow-lg">
             <div className="flex justify-between">
               <div>
@@ -268,55 +268,3 @@ const Dashborad = () => {
   )
 }
 export default Dashborad
-
-
-// const fetchDataCount = async (filter) => {
-//   const dataCount = await countRespondent(filter)
-//   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-//     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-//   const data = dataCount.map((item) => ({
-//     x: monthNames[Number(item.month.split('-')[1]) - 1],
-//     y: item.count
-//   }))
-//   setDataDiagramLine([
-//     {
-//       id: 'Responden',
-//       color: 'hsl(205, 70%, 50%)',
-//       data: data
-//     }
-//   ])
-// }
-
-// const fetchDataRecent = async (filter) => {
-//   const dataRecent = await recentRespondents(filter)
-//   const data = dataRecent.map((item, index) => {
-//     const date = new Date(item.createdAt);
-//     const tanggal = date.getDate().toString().padStart(2, '0');
-//     const bulan = (date.getMonth() + 1).toString().padStart(2, '0');
-//     const tahun = date.getFullYear();
-//     const jam = date.getHours().toString().padStart(2, '0');
-//     const menit = date.getMinutes().toString().padStart(2, '0');
-
-//     const dateString = `${tanggal}-${bulan}-${tahun} ${jam}:${menit}`;
-//     return {
-//       no: index + 1,
-//       nama: item.name,
-//       pekerjaan: item.job,
-//       layanan: item.service.name,
-//       waktu: dateString,
-//       jenisSurvei: item.survey.title
-//     }
-//   })
-//   setDataTable(data)
-//   return dataRecent
-// }
-
-// const fetchDataAvg = async () => {
-//   const dataAvg = await avgScore()
-//   const data = dataAvg.map(item => ({
-//     avgValue: item.averageScore,
-//     maxValue: 5,
-//     nameSurvey: item.title
-//   }))
-//   setDataDiagramAvg(data)
-// }

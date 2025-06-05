@@ -14,8 +14,8 @@ import "react-circular-progressbar/dist/styles.css";
 const CircleProgressbar = (props) => {
   const { dataSurvey, width = 'max-w-[200px]', sizeFont = 'text-lg', hiddenDownload = false, hiddenColor = false } = props
   const { avgValue, maxValue, nameSurvey } = dataSurvey
-  const value = Number(avgValue);
-  const max = Number(maxValue);
+  const value = Number(avgValue ? avgValue : 0);
+  const max = Number(maxValue ? maxValue : 5);
   const ref = useRef(null);
 
   // ? filter warna
@@ -50,8 +50,9 @@ const CircleProgressbar = (props) => {
           {!hiddenDownload &&
             <ButtonDownload type="button" color="bg-white" icon={<MdOutlineFileDownload />} onClick={downloadImage}></ButtonDownload>}
         </div>
-        <div ref={ref} className={`flex flex-col items-center p-5 bg-transparent ${width} overflow-visible bg-red-300`}>
-          <div className="w-full max-w-[300px] aspect-square font-bold rounded-full progress-shadow">
+
+        <div ref={ref} className={`flex flex-col items-center bg-transparent ${width} overflow-visible`}>
+          <div className="w-full max-w-[300px] aspect-square font-bold rounded-full progress-shadow px-10 pt-13">
             <CircularProgressbar
               value={value}
               maxValue={max}
@@ -64,11 +65,12 @@ const CircleProgressbar = (props) => {
                 textSize: "18px",
                 backgroundColor: "#f23131",
                 margin: "20px",
+
               })}
             />
           </div>
-          <div className="mt-2">
-            <h1 className={`text-center ${sizeFont} font-semibold`}>{nameSurvey}</h1>
+          <div>
+            <h1 className={`text-center ${sizeFont} font-bold`}>{nameSurvey}</h1>
           </div>
         </div>
       </div>

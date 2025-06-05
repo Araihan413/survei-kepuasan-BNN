@@ -3,6 +3,7 @@ import { IoIosLock } from "react-icons/io";
 import { MdOutlineEmail } from "react-icons/md";
 import Button from "../Elements/Button";
 import { useForm } from 'react-hook-form';
+import { Link } from "react-router-dom";
 
 const FormLogin = ({ onSubmit, errorMessage }) => {
   const {
@@ -61,7 +62,7 @@ const FormLogin = ({ onSubmit, errorMessage }) => {
           <Button type="submit" text={isSubmitting ? 'Loading...' : 'Login'} color="bg-[#0082cd]" style="text-white mt-6" disabled={isSubmitting}></Button>
         </form>
         <div className="flex justify-center">
-          <p className="text-sm text-blue-500/60 cursor-pointer">Lupa Password?</p>
+          <Link to="/lupa-password" className="text-sm text-biru-muda/70 cursor-pointer font-semibold">Lupa Password ?</Link>
         </div>
       </div>
     </>

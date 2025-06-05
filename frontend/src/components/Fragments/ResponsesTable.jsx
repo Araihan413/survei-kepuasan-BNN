@@ -7,12 +7,12 @@ const ResponsesTable = ({ data, header, width = "" }) => {
 
   const tableRow = []
 
-  for (let i = 0; i < Number(data.dataAnalisis.countRespondent); i++) {
+  for (let i = 0; i < Number(data.dataSurvei.jumlahResponden); i++) {
     tableRow.push(
-      <TableRow key={i + 1}>
+      <TableRow key={i}>
         <TableCell sx={{ borderRight: '1px solid #ccc', maxWidth: 50 }}>{i + 1 + "."}</TableCell>
-        {data.dataAnalisis.pertanyaan.map((item, index) => (
-          <TableCell sx={{ borderRight: '1px solid #ccc', minWidth: 200 }}>{item.text[i]}</TableCell>
+        {data.dataSurvei.analisis.map((item, index) => (
+          <TableCell key={index} sx={{ borderRight: '1px solid #ccc', minWidth: 200 }}>{item.text[i]}</TableCell>
         ))}
       </TableRow>
     )

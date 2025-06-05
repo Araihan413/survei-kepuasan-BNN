@@ -15,11 +15,12 @@ const PieChart = ({ data, width = 330, height = 200 }) => {
           padAngle={0.5}
           enableArcLinkLabels={false}
           cornerRadius={3}
-          arcLabel={e => `${Math.round(e.value)}%`}
+          arcLabel={e => `${((e.value / data.reduce((acc, item) => acc + item.value, 0)) * 100).toFixed(1)}%`}
           arcLinkLabelsColor={{
             from: 'color'
           }}
           arcLinkLabelsThickness={3}
+          // arcLabelsTextColor="#ffffff"
           arcLinkLabelsTextColor={{
             from: 'color',
             modifiers: [['darker', 1.2]]

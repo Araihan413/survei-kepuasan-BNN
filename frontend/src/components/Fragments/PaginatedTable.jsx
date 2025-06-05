@@ -15,7 +15,7 @@ const PaginatedTable = ({ dataPerSlide = 10, header, data }) => {
   return (
     <>
       <div className='overflow-x-auto max-w-full'>
-        <TableContainer component={Paper} className="max-w-full mt-8">
+        <TableContainer component={Paper} className="max-w-full mt-5">
           <Table stickyHeader>
             <TableHead>
               <TableRow>

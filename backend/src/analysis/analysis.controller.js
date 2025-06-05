@@ -4,11 +4,11 @@ const router = express.Router();
 const {verifyToken} = require('../middleware/auth.middleware')
 
 
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/:id', async (req, res) => {
   const surveyId = req.params.id
   const {rangeDate} = req.query
   try {
-    const data = await analysisService.getSurveyAnalysis(surveyId, rangeDate)
+    const data = await analysisService.getSurveyAnalysis(parseInt(surveyId), rangeDate)
     res.status(200).json({
       status: 'success',
       message: 'Data analisis berhasil diambil',

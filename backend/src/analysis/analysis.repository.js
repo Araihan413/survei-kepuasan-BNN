@@ -2,12 +2,12 @@ const prisma = require("../config");
 
 const countAvgScore = async (surveyId, startDate) => {
   const avgScore = await prisma.$queryRaw`
-    SELECT AVG(o."scaleValue") as "averageScore"
+    SELECT AVG(o."scale_value") as "averageScore"
     FROM "Answer" a
-    JOIN "Option" o ON a."optionId" = o."optionId"
-    JOIN "Question" q ON a."questionId" = q."questionId"
-    JOIN "Respondent" r ON a."respondentId" = r."respondentId"
-    WHERE q."surveyId" = ${surveyId} AND r."createdAt" >= ${startDate}
+    JOIN "Option" o ON a."option_id" = o."option_id"
+    JOIN "Question" q ON a."question_id" = q."question_id"
+    JOIN "Respondent" r ON a."respondent_id" = r."respondent_id"
+    WHERE q."survey_id" = ${surveyId} AND r."created_at" >= ${startDate}
     `;
   return avgScore
 }
@@ -33,7 +33,7 @@ const findAllRespondentBySurveyId = async (surveyId, startDate) => {
   return respondents
 }
 
-const findAllResponsesBySurveyId = async (surveyId,  startDate) => {
+const findAllResponsesBySurveyId = async (surveyId, startDate) => {
   const answer = await prisma.survey.findUnique({
     where: {
       surveyId: surveyId
@@ -51,32 +51,38 @@ const findAllResponsesBySurveyId = async (surveyId,  startDate) => {
           displayOrder: true,
           questionType: true,
           answer: {
-          select: {
-            answerText: true,
-            respondent: {
-              where: {
-                createdAt: { gte: startDate }
-              },
-              select: {
-              respondentId: true
-              }
-            },
-            option: {
             select: {
-              optionId: true,
-              optionText: true,
-              scaleValue: true
+              answerText: true,
+              respondent: {
+                select: {
+                  respondentId: true,
+                  createdAt: true // ambil createdAt supaya bisa difilter nanti
+                }
+              },
+              option: {
+                select: {
+                  optionId: true,
+                  optionText: true,
+                  scaleValue: true
+                }
               }
-            }
             }
           }
         }
       }
-    },
-    
-  })
-  return answer
-}
+    }
+  });
+
+  // Filter respondent.createdAt >= startDate
+  for (const q of answer.question) {
+    q.answer = q.answer.filter(ans => {
+      return ans.respondent && new Date(ans.respondent.createdAt) >= new Date(startDate);
+    });
+  }
+
+  return answer;
+};
+
 
 module.exports = {
   countAvgScore,
