@@ -3,78 +3,118 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  TextField,
-  Box,
-  Typography
+  Button
 } from '@mui/material';
 
-const PopupDetail = ({
-  open,
-  onClose,
-  formConfig,
-  data,
-  title = "Detail Data",
-  onEdit // Tambahkan prop onEdit untuk tombol edit
-}) => {
-  const renderDetailField = (field) => {
-    // Format value jika ada formatter
-    const value = field.format
-      ? field.format(data?.[field.name])
-      : data?.[field.name] || '-';
-
-    return (
-      <Box key={field.name} sx={{ mb: 2 }}>
-        {/* Label */}
-        <Typography
-          variant="subtitle2"
-          color="textSecondary"
-          sx={{ mb: 0.5 }}
-        >
-          {field.label}
-        </Typography>
-
-        {/* Value - bisa menggunakan TextField disabled atau Typography */}
-        <TextField
-          fullWidth
-          variant="outlined"
-          value={value}
-          disabled
-          sx={{
-            '& .MuiInputBase-input.Mui-disabled': {
-              color: 'rgba(0, 0, 0, 0.87)',
-              WebkitTextFillColor: 'rgba(0, 0, 0, 0.87)',
-              cursor: 'default'
-            },
-            '& .MuiOutlinedInput-root': {
-              backgroundColor: 'rgba(0, 0, 0, 0.02)'
-            }
-          }}
-        />
-      </Box>
-    );
+const PopupDetail = ({ dataPopup, open, handleClose, layoutForm, handleToPopupEdit }) => {
+  const handleToEdit = () => {
+    handleToPopupEdit();
   };
-
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        {formConfig.map(field => renderDetailField(field))}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Tutup</Button>
-        {onEdit && (
-          <Button
-            onClick={onEdit}
-            variant="contained"
-            color="primary"
-          >
-            Edit
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
-  );
-};
+    <>
+      <div>
+        <Dialog open={open} onClose={handleClose} fullWidth>
+          <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", marginBottom: "0px", paddingBottom: "0px" }}>Data Detail</DialogTitle>
 
-export default PopupDetail;
+          {dataPopup ? (
+            <form onSubmit={(e) => e.preventDefault()}>
+              <DialogContent>
+                {layoutForm.map((item, index) => {
+                  return (
+                    <div key={index} className='flex flex-col gap-1 mb-3'>
+                      <label htmlFor={item.label} className='font-semibold'>{item.label}</label>
+                      {item.type === "textArea" ? (
+                        <textarea type={item.type}
+                          name={item.key}
+                          id={item.label}
+                          readOnly={true}
+                          value={dataPopup[item.key] ?? ''}
+                          className='py-2 px-3 bg-slate-100 outline-0 rounded-md text-sm border-1 border-gray-300 text-gray-500 resize-none' />
+                      ) : (
+                        <input type={item.type}
+                          name={item.key}
+                          id={item.label}
+                          readOnly={true}
+                          value={dataPopup[item.key] ?? ''}
+                          className='py-2 px-3 bg-slate-100 outline-0 rounded-md text-sm border-1 border-gray-300 text-gray-500 ' />
+                      )}
+                    </div>
+                  )
+                })}
+              </DialogContent>
+              <DialogActions sx={{ paddingTop: "0px", marginBottom: "0px" }}>
+                <Button sx={{ backgroundColor: "#0575E6", color: "white" }} onClick={handleToEdit} >Edit</Button>
+                <Button sx={{ marginRight: "20px" }} onClick={handleClose}>Tutup</Button>
+              </DialogActions>
+            </form>
+          ) : (<p className='text-center text-red-400 py-10'>Data Tidak Ditemukan</p>)}
+          <DialogActions>
+          </DialogActions>
+        </Dialog>
+      </div>
+    </>
+  )
+}
+
+export default PopupDetail
+
+// export const PopupDetailQuestion = ({ dataPopup, open, handleClose, layoutForm, handleToPopupEdit }) => {
+//   const handleToEdit = () => {
+//     handleToPopupEdit();
+//   };
+//   return (
+//     <>
+//       <div>
+//         <Dialog open={open} onClose={handleClose} fullWidth>
+//           <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", marginBottom: "0px", paddingBottom: "0px" }}>Detail Survey</DialogTitle>
+
+//           {dataPopup ? (
+//             <form onSubmit={(e) => e.preventDefault()}>
+//               <DialogContent>
+//                 {layoutForm.map((item, index) => {
+//                   return (
+//                     item.type === "opsi" ? (
+//                       <div key={index} className='flex flex-col gap-1 mb-3'>
+//                         <label htmlFor={item.label} className='font-semibold'>{item.label}</label>
+//                         <input type={item.type}
+//                           name={item.key}
+//                           id={item.label}
+//                           readOnly={true}
+//                           value={dataPopup[item.key] ?? ''}
+//                           className='py-2 px-3 bg-slate-100 outline-0 rounded-md text-sm border-1 border-gray-300 text-gray-500' />
+//                         <div>
+//                           {dataPopup.option.map((option, index) => (
+//                             <div key={index}>
+//                               <input type="radio" name="option" value={option.optionId} readOnly />
+//                               <label>{option.optionText}</label>
+//                             </div>
+//                           ))}
+//                         </div>
+//                       </div>
+//                     ) :
+//                       <div key={index} className='flex flex-col gap-1 mb-3'>
+//                         <label htmlFor={item.label} className='font-semibold'>{item.label}</label>
+//                         <input type={item.type}
+//                           name={item.key}
+//                           id={item.label}
+//                           readOnly={true}
+//                           value={dataPopup[item.key] ?? ''}
+//                           className='py-2 px-3 bg-slate-100 outline-0 rounded-md text-sm border-1 border-gray-300 text-gray-500' />
+//                       </div>
+//                   )
+//                 })}
+//               </DialogContent>
+//               <DialogActions sx={{ paddingTop: "0px", marginBottom: "0px" }}>
+//                 <Button sx={{ backgroundColor: "#0575E6", color: "white" }} onClick={handleToEdit} >Edit</Button>
+//                 <Button sx={{ marginRight: "20px" }} onClick={handleClose}>Tutup</Button>
+//               </DialogActions>
+//             </form>
+//           ) : (<p className='text-center text-red-400 py-10'>Data Tidak Ditemukan</p>)}
+//           <DialogActions>
+//           </DialogActions>
+//         </Dialog>
+//       </div>
+//     </>
+//   )
+// }
+// PopupDetail

@@ -60,13 +60,16 @@ const authForgetPassword = async (email) => {
   return resetPasswordLink
 }
 
-const authResetPassword = async (adminId, password, confirmpassword) => {
-  const foundAdmin = await admin.findAdminById(adminId)
+const authResetPassword = async (username, oldPassword, newPassword, confirmPassword) => {
+  const foundAdmin = await admin.findAdminByUsername(username)
+  if (newPassword.length < 8) throw new Error("Password baru minimal 8 karakter");
   if (!foundAdmin) throw new Error('user tidak ditemukan')
-  if (password !== confirmpassword) throw new Error('password tidak sama')
-  const hashPassword = await utilsHash.hashPassword(password)
+  const isPasswordMatch = await utilsHash.comparePassword(oldPassword, foundAdmin.password)
+  if (!isPasswordMatch) throw new Error('password lama salah')
+  if (newPassword !== confirmPassword) throw new Error('password tidak sama')
+  const hashPassword = await utilsHash.hashPassword(newPassword)
 
-  const updatePassword = await admin.updateAdmin(adminId, {password: hashPassword})
+  const updatePassword = await admin.updateAdmin(foundAdmin.adminId, {password: hashPassword})
   return updatePassword
 }
 

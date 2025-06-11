@@ -10,7 +10,6 @@ import { IoClose } from "react-icons/io5";
 import { IoMdAddCircle } from "react-icons/io";
 import urlApi from "../../api/urlApi";
 import { useState, useEffect } from 'react';
-import { set } from 'react-hook-form';
 
 
 const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurveys }) => {
@@ -58,8 +57,6 @@ const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurvey
     }
   };
 
-
-
   const openPopupActivate = (idSurvey) => {
     setSurveyIdBeingEdited(idSurvey);
     fetchQuestionBySurveyId(idSurvey);
@@ -100,7 +97,6 @@ const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurvey
         <DialogContent>
           <div className='px-5'>
             {questionActive && questionActive.length > 0 ? (
-
               questionActive.map((item) => {
                 return (
                   <div key={item.surveyId} className='border-t-1 border-gray-500 pt-5 pb-6'>
@@ -146,7 +142,7 @@ const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurvey
               })
 
             ) : (
-              <p>Memuat pertanyaan...</p>
+              <p className='text-center text-biru-muda'>Memuat pertanyaan...</p>
             )}
           </div>
         </DialogContent>

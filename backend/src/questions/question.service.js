@@ -17,18 +17,64 @@ const getAllQuestion = async () => {
   return question
 }
 
-const createQuestion = async (newDataQuestion) => {
+// Di question.service.js
+const createQuestion = async (surveyId, adminId, questionsData) => {
+  const createdQuestions = [];
 
-  const requiredFields = ['surveyId', 'questionText', 'questionType', 'displayOrder', 'adminId']
+  for (const item of questionsData) {
+    const baseQuestion = {
+      surveyId,
+      questionText: item.question,
+      questionType: item.type,
+      isRequired: item.required,
+      displayOrder: item.displayOrder || 0,
+      adminId,
+      isPersonal: item.isPersonal || false,  // Tambahkan field baru
+      respondentField: item.respondentField || null,  // Tambahkan field baru
+    };
 
-  for (const field of requiredFields) {
-    if (!newDataQuestion[field]) {
-      throw new Error(`Data field "${field}" wajib dikirim`)
+    // Case 1: Pertanyaan teks
+    if (item.type === "text") {
+      const newQuestion = await questionRepository.insertQuestion({
+        ...baseQuestion,
+        options: { create: [] },  // Tetap buat relasi kosong
+      });
+      createdQuestions.push(newQuestion);
+    }
+
+    // Case 2: Pertanyaan opsi
+    else if (item.type === "opsi") {
+      const options = item.options.map((optionText, index) => ({
+        optionText: optionText,
+        scaleValue: null,
+        displayOrder: index + 1,
+      }));
+    
+      const newQuestion = await questionRepository.insertQuestionAndOption(
+        baseQuestion,
+        options
+      );
+      createdQuestions.push(newQuestion);
+    }
+
+    // Case 3: Pertanyaan skala
+    else if (item.type === "skala") {
+      const options = item.scaleOptions.map((optionText, index) => ({
+        optionText,
+        scaleValue: item.scaleValues[index],  // Gunakan nilai skala
+        displayOrder: index + 1,
+      }));
+
+      const newQuestion = await questionRepository.insertQuestionAndOption(
+        baseQuestion,
+        options
+      );
+      createdQuestions.push(newQuestion);
     }
   }
-  const newQuestion = await questionRepository.insertQuestion(newDataQuestion)
-  return newQuestion
-}
+
+  return createdQuestions;
+};
 
 const updateQuestionById = async (id, questionData) => {
   await getQuestionById(id)

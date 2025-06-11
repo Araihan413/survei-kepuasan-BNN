@@ -5,9 +5,24 @@ const findServices = async () => {
   return services
 }
 
+const findServiceById = async (id) => {
+  const service = await prisma.service.findUnique({ where: { serviceId: id } })
+  return service
+}
+
 const insertService = async (dataService) => {
   const newService = await prisma.service.create({ data: dataService })
   return newService
 }
 
-module.exports = { findServices, insertService }
+const updateService = async (id, dataService) => {
+  const updatedService = await prisma.service.update({ where: { serviceId: id }, data: dataService })
+  return updatedService
+}
+
+const deleteService = async (id) => {
+  const deletedService = await prisma.service.delete({ where: { serviceId: id } })
+  return deletedService
+}
+
+module.exports = { findServices, insertService, findServiceById, updateService, deleteService }

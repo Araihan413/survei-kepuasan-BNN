@@ -6,8 +6,12 @@ import { FaHeadset } from "react-icons/fa";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../../AuthContext";
+import { AlertComfirm } from "../Elements/Alert";
 
 const Navbar = () => {
+  const { logout } = useContext(AuthContext);
   const navigasi = useNavigate()
   const navItems = [
     { name: "DashBoard", path: "/dashboard", icon: <AiFillPieChart /> },
@@ -18,6 +22,22 @@ const Navbar = () => {
     { name: "Bantuan", path: "/bantuan", icon: <FaHeadset /> },
 
   ];
+
+  const handleLogout = async () => {
+    const confirmed = await AlertComfirm({
+      title: "Logout",
+      text: "Apakah Anda yakin ingin logout?",
+      confirmButtonText: "Ya, Logout",
+      cancelButtonText: "Batal"
+    });
+    console.log(confirmed);
+    if (!confirmed) return; // Jangan lanjut kalau user membatalkan
+    if (confirmed) {
+      logout();
+      navigasi("/login");
+    }
+  };
+
   return (
     <>
       <nav className="bg-white pr-1 pl-5 pt-5.5 z-50 fixed h-screen overflow-y-scroll">
@@ -47,13 +67,13 @@ const Navbar = () => {
                 </NavLink>
               </li>
             ))}
-            <li onClick={() => navigasi("/login")}>
-              <NavLink className="flex items-center gap-3 py-2.5 rounded-xl pl-4 hover:bg-blue-800/90 hover:text-white text-gray-700">
+            <li onClick={handleLogout}>
+              <div className="flex items-center gap-3 py-2.5 rounded-xl pl-4 hover:bg-blue-800/90 hover:text-white text-gray-700 cursor-pointer">
                 <div className="text-base">
                   <RiLogoutBoxRLine />
                 </div>
                 <h1 className="text-sm font-normal">Keluar</h1>
-              </NavLink>
+              </div>
             </li>
           </ul>
         </div>

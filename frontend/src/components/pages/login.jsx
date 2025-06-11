@@ -1,13 +1,16 @@
 import FormLogin from "../Fragments/FormLogin"
-import { useEffect, useState } from "react"
+import { useState, useContext } from "react"
 import { useForm } from 'react-hook-form';
+import { AuthContext } from "../../AuthContext";
 import { useNavigate } from "react-router-dom";
 import urlApi from "../../api/urlApi";
+import { AlertSuccess } from "../Elements/Alert";
 
 const Login = () => {
   const navigate = useNavigate();
   const { reset } = useForm();
   const [errorMessage, setErrorMessage] = useState('')
+  const { login } = useContext(AuthContext);
 
   const onSubmitLogin = (data) => {
     setErrorMessage('')
@@ -29,9 +32,12 @@ const Login = () => {
           throw new Error(dataAdmin.message || dataAdmin.error || 'Login Gagal!');
         }
         localStorage.setItem('accessToken', dataAdmin.data.accessToken);
-        localStorage.setItem('admin', JSON.stringify(dataAdmin.data.admin));
+        login(dataAdmin.data.admin.adminId, dataAdmin.data.admin.role, dataAdmin.data.admin.name, dataAdmin.data.admin.email)
 
         navigate('/dashboard')
+        setTimeout(() => {
+          AlertSuccess({ text: `Selamat Datang ${dataAdmin.data.admin.name}` })
+        }, 800)
       } catch (error) {
         setErrorMessage(error.message);
       } finally {

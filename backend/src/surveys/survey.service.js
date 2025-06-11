@@ -67,7 +67,6 @@ const deleteSurveyById = async (id) => {
 
 module.exports = { 
   getAllQuestionInSurvey,
-  // getAllQuestionIsActive,
   getAllSurvey,
   getDetailSurveyById,
   insertSurvey,

@@ -5,7 +5,7 @@ const BarChartHorizontal = ({ data, height = "h-[200px]", width }) => {
   return (
     <div>
       <div className="ml-5 max-w-4/5">
-        <h1 className="text-md font-semibold text-gray-700">{data.questionText}</h1>
+        <h1 className="text-md font-semibold">{data.questionText}</h1>
       </div>
       <div className={`${height} ${width}`}>
         <ResponsiveBar

@@ -4,25 +4,25 @@ const {verifyToken} = require('../middleware/auth.middleware')
 const {requireRole} = require('../middleware/role.middleware')
 const adminService = require('./admin.service');
 
-router.get('/profile', verifyToken, async (req, res) => {
-  try {
-    const {adminId} = req.admin
-    const dataProfil  = await  adminService.getAdminById(adminId)
+// router.get('/profile', verifyToken, async (req, res) => {
+//   try {
+//     const {adminId} = req.admin
+//     const dataProfil  = await  adminService.getAdminById(parseInt(adminId))
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Profil admin berhasil diambil',
-      data: dataProfil,
-      newAccessToken: res.get('New-Access-Token')
-    })
-  } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
-    })
-  }
-})
+//     res.status(200).json({
+//       status: 'success',
+//       message: 'Profil admin berhasil diambil',
+//       data: dataProfil,
+//       newAccessToken: res.get('New-Access-Token')
+//     })
+//   } catch (error) {
+//     res.status(400).json({
+//       status: "error",
+//       message: "Something went wrong on the server",
+//       error: error.message
+//     })
+//   }
+// })
 
 router.post('/ganti-password', verifyToken, async (req, res) => {
   try {
@@ -45,7 +45,7 @@ router.post('/ganti-password', verifyToken, async (req, res) => {
 })
 
 
-router.get('/', verifyToken, async (req, res) => {
+router.get('/',  async (req, res) => {
   try {
 
     const admin = await  adminService.getAllAdmin()
@@ -66,11 +66,10 @@ router.get('/', verifyToken, async (req, res) => {
   }
 })
 
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/:id',  async (req, res) => {
   try {
     const adminId = req.params.id;
-
-    const admin = await  adminService.getAdminById(adminId)
+    const admin = await adminService.getAdminById(adminId)
     res.status(200).json({
       status: 'success',
       message: 'data admin berhasil diambil',
@@ -105,7 +104,7 @@ router.post('/tambah-admin', verifyToken,requireRole('admin super'), async (req,
   }
 })
 
-router.patch('/:id', verifyToken, async (req, res) => {
+router.patch('/:id', async (req, res) => {
   try {
     const {id} = req.params;
     const dataAdmin = req.body;

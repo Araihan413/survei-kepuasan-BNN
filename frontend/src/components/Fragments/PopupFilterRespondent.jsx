@@ -51,7 +51,7 @@ const PopupFilterRespondent = ({ open, onClose, onApplyFilter }) => {
           throw new Error(dataTypeSurvey.message || dataTypeSurvey.error);
         }
         const typeSurvey = dataTypeSurvey.data
-          .filter(item => item.title.toLowerCase() !== "biodata")
+          .filter(item => item.isPersonal === true)
           .map(item => ({
             value: item.surveyId,
             label: item.title

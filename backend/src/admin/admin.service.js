@@ -1,4 +1,4 @@
-const { adminRepository } = require('./admin.repository')
+const  adminRepository  = require('./admin.repository')
 const utilsHash = require('../utils/hash')
 
 

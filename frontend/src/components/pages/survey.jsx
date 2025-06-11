@@ -1,147 +1,260 @@
 import KebabMenu from "../Elements/KebabMenu";
 import ButtonDownload from "../Elements/ButtonDownload";
 import { IoLink } from "react-icons/io5";
-import PopupEditForm from "../Fragments/PopupEdit";
-import { useState } from "react";
-import { LuClipboardPen } from "react-icons/lu";
+import PopupEdit from "../Fragments/PopupEdit";
+import { useState, useEffect } from "react";
+import { RiSurveyLine } from "react-icons/ri";
 import Button from "../Elements/Button";
 import PopupDetail from "../Fragments/PopupDetail";
+import PopupListQuestion from "../Fragments/PopupListQuestion";
+import urlApi from "../../api/urlApi";
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import { FaCirclePlus } from "react-icons/fa6";
+import { PopupCreateSurvey } from "../Fragments/PopupAdd";
+import { AlertSuccess, AlertFailed } from "../Elements/Alert";
+import { useNavigate } from "react-router-dom";
 
-
-const survey = [
-  {
-    id: 1,
-    title: "Survei Kepuasan Pelayanan",
-    description: "Survei 1",
-    isPublished: true,
-    createdAt: "2023-01-01",
-    updatedAt: "2023-01-01"
-  },
-  {
-    id: 2,
-    title: "Survei Persepsi Anti Korupsi",
-    description: "Survei 2",
-    isPublished: true,
-    createdAt: "2023-04-01",
-    updatedAt: "2023-05-01"
-  },
-]
-
-// ? data popup
-const formConfig = [
-  {
-    name: 'nama',
-    label: 'nama',
-    type: 'text',
-    validation: { required: 'Nama produk wajib diisi' }
-  },
-  {
-    name: 'umur',
-    label: 'Umur',
-    type: 'number',
-    readOnly: true,
-    validation: { required: 'umur wajib diisi' }
-  },
-  {
-    name: 'deskripsi',
-    label: 'deskripsi',
-    type: 'text',
-    validation: {}
-  },
-  {
-    name: 'harga',
-    label: 'harga',
-    type: 'number',
-    validation: {
-      required: 'Harga wajib diisi',
-      min: { value: 0, message: 'Harga tidak boleh negatif' }
-    }
-  },
+const layoutDataSurvey = [
+  { key: "title", label: "Nama", type: "text", accessEdit: true, validation: { required: 'Nama produk wajib diisi' } },
+  { key: "description", label: "Deskripsi", type: "textArea", accessEdit: true, validation: {} },
+  { key: "createdAt", label: "Tanggal Buat", type: "text", accessEdit: false, validation: {} },
+  { key: "adminName", label: "Dibuat Oleh", type: "text", accessEdit: false, validation: {} },
+  { key: "totalQuestion", label: "Jumlah Pertanyaan Aktif", type: "text", accessEdit: false, validation: {} },
 ];
 
 const Survey = () => {
-
-  // ? handle popup and kebab menu
-  const [isPopupEditOpen, setIsPopupEditOpen] = useState(false);
-  const [isPopupDetailOpen, setIsPopupDetailOpen] = useState(false);
-  const [currentData, setCurrentData] = useState(null);
-
-  const handleSubmit = (formData) => {
-    // Lakukan API call atau update state di sini
-    setIsPopupEditOpen(false);
-  };
-
-  const handleOpenPopupEdit = (data) => {
-    setCurrentData(data);
-    setIsPopupEditOpen(true);
-    setIsPopupDetailOpen(false);
-  };
-  const handleOpenPopupDetail = (data) => {
-    setCurrentData(data);
-    setIsPopupDetailOpen(true);
-    setIsPopupEditOpen(false);
-  };
-
-  const sampleData = {
-    id: 1,
-    nama: "ahmad raihan",
-    deskripsi: 'Survei 1',
-    umur: 20,
-    harga: 10000
-  };
+  const [openPopupListQuestion, setOpenPopupListQuestion] = useState(false);
+  const [allSurveyAndQuestion, setAllSurveyAndQuestion] = useState([]);
+  const [toggles, setToggles] = useState({});
+  const [listSurvei, setListSurvei] = useState([]);
+  const [showPopupEdit, setShowPopupEdit] = useState(false);
+  const [showPopupDetail, setShowPopupDetail] = useState(false);
+  const [dataDetailSurvey, setDataDetailSurvey] = useState({});
+  const [showPopupAddSurvey, setShowPopupAddSurvey] = useState(false);
+  const navigate = useNavigate();
 
   const ChangeFormatDate = (dateFormat) => {
     const date = new Date(dateFormat);
     const opsi = { day: 'numeric', month: 'long', year: 'numeric' };
-    const result = new Intl.DateTimeFormat('id-ID', opsi).format(date);
-    return result
-  }
-  return (
-    <>
-      <section className="py-10 px-5">
-        <div className="bg-white rounded-xl shadow-md px-5 pt-5 pb-10">
-          <div className="flex justify-between">
-            <div>
-              <h1 className="text-lg font-bold text-gray-700">Survei Yang Terdaftar di BNN Sleman</h1>
-            </div>
-            <div className="flex w-max text-sm gap-4">
-              <ButtonDownload icon={<IoLink className="text-lg" />} text="Salin Link" />
-              <Button icon={<LuClipboardPen className="text-xl text-biru-muda" />} color="bg-white" style="border-1 border-biru-muda/80 active:bg-slate-100" onClick={() => { }} />
-            </div>
-          </div>
+    return new Intl.DateTimeFormat('id-ID', opsi).format(date);
+  };
 
-          <div className="flex flex-col gap-5 mt-10">
-            {survey.map((item) => (
-              <div key={item.id} className="bg-slate-50 shadow-md rounded-xl px-5 py-3 cursor-pointer flex justify-between">
-                <div>
-                  <h1 className="text-md font-semibold text-gray-700">{item.title}</h1>
-                  <p className="text-sm text-gray-400">{ChangeFormatDate(item.createdAt)}</p>
-                </div>
-                <div>
-                  <KebabMenu onEdit={() => handleOpenPopupEdit(sampleData)} onDelete={() => { }} onDetail={() => handleOpenPopupDetail(sampleData)} />
-                  <PopupEditForm
-                    open={isPopupEditOpen}
-                    onClose={() => setIsPopupEditOpen(false)}
-                    formConfig={formConfig}
-                    initialData={currentData}
-                    onSubmit={handleSubmit}
-                    title="Edit Produk"
-                  />
-                  <PopupDetail
-                    open={isPopupDetailOpen}
-                    onClose={() => setIsPopupDetailOpen(false)}
-                    formConfig={formConfig}
-                    data={currentData}
-                    title="Detail Produk"
-                    onEdit={() => handleOpenPopupEdit(sampleData)}
-                  />
-                </div>
-              </div>
-            ))}
+  const fetchDataDetailSurvey = async (id) => {
+    try {
+      const response = await fetch(`${urlApi}/survey/${id}`);
+      const survey = await response.json();
+      if (!response.ok) throw new Error(survey.message || survey.error);
+      const templateDetail = {
+        id: survey.data.surveyId,
+        title: survey.data.title ?? '',
+        description: survey.data.description ?? '',
+        isPublished: survey.data.isPublished,
+        createdAt: ChangeFormatDate(survey.data.createdAt) ?? '',
+        adminName: survey.data.admin.name ?? '',
+        totalQuestion: survey.data._count.question ?? 0
+      };
+      setDataDetailSurvey(templateDetail);
+    } catch (error) {
+      AlertFailed({ text: error.message });
+    }
+  };
+
+  const handleOpen = () => {
+    const fetchData = async () => {
+      try {
+        const surveys = await fetch(`${urlApi}/survey/questions`);
+        const dataSurveys = await surveys.json();
+        if (!surveys.ok) throw new Error(dataSurveys.message || dataSurveys.error);
+        const surveysActive = dataSurveys.data?.filter(item => item.isPublished);
+        setAllSurveyAndQuestion(surveysActive);
+      } catch (error) {
+        AlertFailed({ text: error.message });
+      }
+    };
+    fetchData();
+    setOpenPopupListQuestion(true);
+  };
+
+  const handleCloseManageQuestion = () => setOpenPopupListQuestion(false);
+
+  const handleOpenPopupEdit = (id) => {
+    fetchDataDetailSurvey(id);
+    setShowPopupEdit(true);
+  };
+
+  const handleOpenPopupDetail = (id) => {
+    fetchDataDetailSurvey(id);
+    setShowPopupDetail(true);
+  };
+
+  const handleToPopupEdit = () => {
+    setShowPopupDetail(false);
+    setShowPopupEdit(true);
+  };
+
+  const handleToggle = (id) => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${urlApi}/survey/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isPublished: !toggles[id] }),
+        });
+        const newData = await response.json();
+        if (!response.ok) throw new Error(newData.message || newData.error);
+        setToggles((prev) => ({ ...prev, [id]: !prev[id] }));
+      } catch (error) {
+        AlertFailed({ text: error.message });
+      }
+    };
+    fetchData();
+  };
+
+  const fetchDataSurvey = async () => {
+    try {
+      const surveys = await fetch(`${urlApi}/survey`);
+      const listSurveys = await surveys.json();
+      if (!surveys.ok) throw new Error(listSurveys.message || listSurveys.error);
+      setListSurvei(listSurveys.data);
+      const infoActiveSurvey = listSurveys.data.reduce((acc, item) => {
+        acc[item.surveyId] = item.isPublished;
+        return acc;
+      }, {});
+      setToggles(infoActiveSurvey);
+    } catch (error) {
+      AlertFailed({ text: error.message });
+    }
+  };
+
+  useEffect(() => {
+    fetchDataSurvey();
+  }, []);
+
+  const handleAddSurvey = () => setShowPopupAddSurvey(true);
+
+  const handleUpdateSurvey = (updatedData) => {
+    const fetchData = async (id) => {
+      try {
+        const response = await fetch(`${urlApi}/survey/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: updatedData.title,
+            description: updatedData.description,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Gagal update survey");
+        }
+        fetchDataSurvey();
+        AlertSuccess({ text: 'Data berhasil diedit!' });
+      } catch (error) {
+        console.log(error);
+        AlertFailed({ text: error.message });
+      }
+    };
+    fetchData(updatedData.id);
+  };
+
+  const handleSuccessCreateSurvey = () => {
+    fetchDataSurvey();
+  };
+
+  const handleDeleteSurvey = (id) => {
+    const confirSurvey = listSurvei.find(item => item.surveyId === id);
+    if (!confirSurvey) return
+    if (confirSurvey.isPersonal) {
+      return AlertFailed({ text: 'Survei Biodata tidak dapat dihapus!' });
+    }
+    const deleteSurvey = async (id) => {
+      try {
+        const responses = await fetch(`${urlApi}/survey/${id}`, {
+          method: "DELETE",
+        })
+        const dataSurvey = await responses.json()
+        if (!responses.ok) throw new Error(dataSurvey.message || dataSurvey.error);
+        AlertSuccess({ text: 'Data survei berhasil dihapus!' });
+        fetchDataSurvey();
+      } catch (error) {
+        AlertFailed({ text: error.message });
+      }
+    }
+    deleteSurvey(id)
+  };
+
+  return (
+    <section className="py-10 px-5">
+      <div className="bg-white rounded-xl shadow-md px-5 pt-5 pb-20">
+        <div className="flex justify-between">
+          <h1 className="text-lg font-bold text-gray-700">Survei Yang Terdaftar di BNN Sleman</h1>
+          <div className="flex w-max text-sm gap-4">
+            <ButtonDownload icon={<IoLink className="text-lg" />} text="Salin Link" onClick={() => { }} />
+            <Button icon={<RiSurveyLine className="text-xl text-biru-muda" />} text="Kelola Pertanyaan" color="bg-white" style="border-1 border-biru-muda/80 active:bg-slate-100 text-biru-muda text-xs" onClick={handleOpen} />
           </div>
         </div>
-      </section>
-    </>
-  )
-}
-export default Survey
+
+        <PopupListQuestion
+          openPopUp={openPopupListQuestion}
+          handleClose={handleCloseManageQuestion}
+          dataSurveys={allSurveyAndQuestion}
+          onUpdateSurveys={() => { }}
+        />
+
+        <div className="flex flex-col gap-5 mt-10">
+          {listSurvei.map((item) => (
+            <div key={item.surveyId} className="bg-slate-50 shadow-md rounded-xl px-5 py-3 flex justify-between">
+              <div onClick={() => navigate(`/survei/kelola`)} className=" cursor-pointer">
+                <h1 className="text-md font-semibold text-gray-700 mb-1">{item.title}</h1>
+                <p className="text-xs text-gray-400">{ChangeFormatDate(item.createdAt)}</p>
+              </div>
+              <div className="flex gap-5">
+                <FormControlLabel
+                  control={<Switch checked={toggles[item.surveyId]} onChange={item.isPersonal ? (e) => e.preventDefault() : () => handleToggle(item.surveyId)} disabled={!!item.isPersonal} />}
+                  label={item.isPersonal ? "Aktif" : toggles[item.surveyId] ? "Aktif" : "Nonaktif"}
+                />
+                <KebabMenu
+                  onEdit={() => handleOpenPopupEdit(item.surveyId)}
+                  onDelete={() => handleDeleteSurvey(item.surveyId)}
+                  onDetail={() => handleOpenPopupDetail(item.surveyId)}
+                />
+              </div>
+            </div>
+          ))}
+
+          <PopupEdit
+            dataPopup={dataDetailSurvey}
+            open={showPopupEdit}
+            handleClose={() => setShowPopupEdit(false)}
+            layoutForm={layoutDataSurvey}
+            onSubmitSuccess={handleUpdateSurvey}
+          />
+
+          <PopupDetail
+            open={showPopupDetail}
+            handleClose={() => setShowPopupDetail(false)}
+            dataPopup={dataDetailSurvey}
+            layoutForm={layoutDataSurvey}
+            handleToPopupEdit={handleToPopupEdit}
+          />
+        </div>
+      </div>
+
+      <button type="button" className="text-biru-muda active:text-biru-muda/80 active:scale-95 cursor-pointer fixed bottom-14 right-9 text-5xl" onClick={handleAddSurvey}>
+        <FaCirclePlus />
+      </button>
+
+      <PopupCreateSurvey
+        open={showPopupAddSurvey}
+        handleCancel={() => setShowPopupAddSurvey(false)}
+        lengthSurvey={listSurvei.length}
+        onSuccessAdd={handleSuccessCreateSurvey}
+      />
+    </section>
+  );
+};
+
+export default Survey;

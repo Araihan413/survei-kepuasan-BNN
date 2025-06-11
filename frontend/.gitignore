@@ -40,3 +40,5 @@ dist-ssr
 *.wmv
 *.webm
 
+# Ignore semua file PDF
+*.pdf

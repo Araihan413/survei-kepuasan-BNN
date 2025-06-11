@@ -5,6 +5,12 @@ const getAllService = async () => {
   return services;
 };
 
+const getServiceById = async (id) => {
+  const service = await serviceRepository.findServiceById(id);
+  if (!service) throw new Error('data service tidak ditemukan')
+  return service;
+};
+
 const createService = async (dataService) => {
   const requiredFields = ['name', 'label']
 
@@ -17,4 +23,16 @@ const createService = async (dataService) => {
   return service;
 };
 
-module.exports = {getAllService , createService };
+const updateServiceById= async (id, dataService) => {
+  await getServiceById(id)
+  const service = await serviceRepository.updateService(id, dataService);
+  return service;
+};
+
+const deleteServiceById = async (id) => {
+  await getServiceById(id)
+  const service = await serviceRepository.deleteService(id);
+  return service;
+};
+
+module.exports = {getAllService , createService, getServiceById, updateServiceById, deleteServiceById};

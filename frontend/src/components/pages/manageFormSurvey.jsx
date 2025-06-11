@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { FaRegBell, FaPalette } from "react-icons/fa6";
-import { MdKeyboardArrowDown } from "react-icons/md";
-import { IoIosArrowForward, IoMdSave } from "react-icons/io";
+import { FaPalette } from "react-icons/fa6";
+import { IoMdSave } from "react-icons/io";
 import { IoLink, IoEye } from "react-icons/io5";
 import { LuClipboardPen } from "react-icons/lu";
+import { RiSurveyLine } from "react-icons/ri";
 import Button from "../Elements/Button";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import urlApi from "../../api/urlApi";
 import PopupListQuestion from "../Fragments/PopupListQuestion";
-import { set } from "react-hook-form";
+import NavbarTop from "../Fragments/NavbarTop";
+import { BiSolidImageAlt } from "react-icons/bi";
+import { HiPencil } from "react-icons/hi2";
 
 const ManageFormSurvey = () => {
   const navigasi = useNavigate();
@@ -17,7 +19,7 @@ const ManageFormSurvey = () => {
   const [dataForm, setDataForm] = useState([]);
   // ? isi nya id survey yang sedang tampil di layar
   const [surveyActive, setSurveyActive] = useState(null);
-  // ? isi nya object lyang ada data survey dan ada list questionnya
+  // ? isi nya object yang ada data survey dan ada list questionnya
   const [listQuestion, setListQuestion] = useState([]);
   // ? isi nya array list service untuk option survey
   const [listService, setListService] = useState([]);
@@ -26,6 +28,7 @@ const ManageFormSurvey = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openPopupListQuestion, setOpenPopupListQuestion] = useState(false);
+  const [dataSurveyActive, setDataSurveyActive] = useState(null);
 
   const fetchQuestionBySurveyId = async (surveyId) => {
     try {
@@ -87,12 +90,14 @@ const ManageFormSurvey = () => {
     };
 
     fetchData();
+    setDataSurveyActive(dataForm.find(item => item.surveyId === surveyActive));
   }, []);
 
 
   useEffect(() => {
     if (!surveyActive) return;
     fetchQuestionBySurveyId(surveyActive);
+    setDataSurveyActive(dataForm.find(item => item.surveyId === surveyActive));
   }, [surveyActive]);
 
   useEffect(() => {
@@ -121,44 +126,15 @@ const ManageFormSurvey = () => {
     <>
       <section className="bg-sky-100 w-full min-h-screen h-max relative pb-10">
         {/* ? navbar */}
-        <nav className="fixed top-0 left-0 right-0 z-50">
-          <div className="bg-white flex justify-between items-center p-5">
-
-            <div className="flex gap-3 items-center cursor-pointer" onClick={() => navigasi("/dashboard")}>
+        <div className="fixed mt-16 top-0 left-0 right-0 z-50">
+          <div>
+            <NavbarTop />
+          </div>
+          <div className="bg-white border-t-1 border-gray-500  flex gap-6 justify-end items-center px-5 py-3 relative">
+            <div className="flex gap-3 items-center  left-5 cursor-pointer absolute" onClick={() => navigasi("/dashboard")}>
               <img className="w-10" src="/aset/logo/logoBnn.png" alt="logo bnn" />
               <h1 className="text-xl font-bold">SIGAP BNN</h1>
             </div>
-
-            <div className="flex gap-3">
-              <div className="flex gap-3 items-center">
-                <h1 className="text-gray-700 text-xl font-semibold cursor-pointer" onClick={() => navigasi("/survei")}>Survei </h1>
-                <IoIosArrowForward className="text-xl mt-1" />
-              </div>
-              <h1 className="text-gray-700 text-xl font-semibold">Survei Kepuasan Pelayanan</h1>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <div className="text-[#dfb400] text-xl bg-[#fff8da]/50 p-2 rounded-md cursor-pointer">
-                <FaRegBell />
-              </div>
-              <div className="flex items-center gap-3 cursor-pointer">
-                <div className="w-10 h-10 rounded-xl ">
-                  <img src="../aset/profile/profileDefault.png" alt="gambar profile" />
-                </div>
-                <div className="flex items-start gap-3">
-                  <div>
-                    <h1 className="font-semibold text-sm">Ahmad Raihan</h1>
-                    <p className="text-xs">Admin</p>
-                  </div>
-                  <div className="mt-1">
-                    <MdKeyboardArrowDown />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white border-t-1 border-gray-500  flex gap-6 justify-end items-center px-5 py-3">
             <div className="flex gap-8">
               <div className="cursor-pointer">
                 <FaPalette className="text-xl text-gray-700" />
@@ -174,11 +150,10 @@ const ManageFormSurvey = () => {
               <Button type="button" text="Simpan" style="text-xs" onClick={() => navigasi("/dashboard")} icon={<IoMdSave className="text-xl text-gray-500" />}></Button>
             </div>
             <div >
-              <Button icon={<LuClipboardPen className="text-xl text-biru-muda" />} color="bg-white" style="border-1 border-biru-muda/80 active:bg-slate-100" onClick={handleOpen} />
-
+              <Button icon={< RiSurveyLine className="text-xl text-biru-muda" />} text="Kelola Pertanyaan" color="bg-white" style="border-1 border-biru-muda/80 active:bg-slate-100 text-biru-muda text-xs" onClick={handleOpen} />
             </div>
           </div>
-        </nav>
+        </div>
         {/* ? popup */}
         <PopupListQuestion
           openPopUp={openPopupListQuestion}
@@ -214,14 +189,25 @@ const ManageFormSurvey = () => {
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-10 w-full px-5">
-            <div className="w-full md:w-120 h-30 bg-white shadow-md rounded-xl relative overflow-hidden cursor-pointer">
-              <h1>ini gambar</h1>
-              <div className="w-full h-full absolute bg-white/0 hover:bg-white/10 hover:backdrop-blur-xs z-10 top-0"></div>
+          <div className="flex flex-col items-center gap-3 w-full px-5">
+            <div className=" h-max md:w-120 relative rounded-xl overflow-hidden cursor-pointer">
+              <img src={dataSurveyActive?.bannerUrl ? dataSurveyActive.bannerUrl : "../aset/image/benner-survei.png"} alt="benner survei" className="w-full" />
+              <div className="flex justify-center items-center opacity-0 w-full  h-full absolute bg-white/0 hover:bg-white/10 hover:backdrop-blur-xs hover:opacity-100 z-10 top-0">
+                <div className="flex  gap-2">
+                  <BiSolidImageAlt className="text-2xl text-gray-800" />
+                  <p className="text-gray-800 font-bold">Tambahkan Gambar</p>
+                </div>
+              </div>
             </div>
-            <div className=" w-full md:w-120 h-30 bg-white shadow-md rounded-xl relative overflow-hidden cursor-pointer">
-              <h1>ini gambar</h1>
-              <div className="w-full h-full absolute bg-white/0 hover:bg-white/10 hover:backdrop-blur-xs z-10 top-0"></div>
+
+            <div className=" w-full md:w-120 h-max bg-white shadow-md rounded-xl relative overflow-hidden cursor-pointer text-center">
+              <h1 className="p-5">{dataSurveyActive?.textInformation ? dataSurveyActive.textInformation : "Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe ducimus sed voluptas, fugiat magnam at molestiae porro culpa perspiciatis aliquid temporibus facere et sunt illo doloremque cupiditate odio assumenda architecto!"}</h1>
+              <div className="flex justify-center items-center opacity-0 w-full  h-full absolute bg-white/0 hover:bg-white/10 hover:backdrop-blur-xs hover:opacity-100 z-10 top-0">
+                <div className="flex  gap-2">
+                  <HiPencil className="text-2xl text-gray-800" />
+                  <p className="text-gray-800 font-bold">Edit Tulisan</p>
+                </div>
+              </div>
             </div>
           </div>
 

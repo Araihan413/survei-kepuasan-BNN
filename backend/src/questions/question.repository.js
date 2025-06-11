@@ -36,12 +36,46 @@ const findQuestions = () => {
   return question
 }
 
-const insertQuestion = (newDataQuestion) => {
+const insertQuestion = (newQues) => {
+  console.log("data le",newQues)
   const newQuestion = prisma.question.create({
-    data: newDataQuestion
+    data: {
+      surveyId: newQues.surveyId,
+      questionText: newQues.questionText,
+      questionType: newQues.questionType,
+      isRequired: newQues.isRequired,
+      displayOrder: newQues.displayOrder,
+      adminId: newQues.adminId,
+    }
   })
   return newQuestion
 }
+
+// Di question.repository.js
+const insertQuestionAndOption = (newQues, options) => {
+  const newQuestion =  prisma.question.create({
+    data: {
+      surveyId: newQues.surveyId,
+      questionText: newQues.questionText,
+      questionType: newQues.questionType,
+      isRequired: newQues.isRequired,
+      isActive: true,  // Default value sesuai schema
+      displayOrder: newQues.displayOrder,
+      adminId: newQues.adminId,
+      isPersonal: newQues.isPersonal || false,  // Tambahkan default
+      respondentField: newQues.respondentField || null,  // Handle optional field
+      option: {
+        create: options.map(opt => ({
+          optionText: opt.optionText,
+          scaleValue: opt.scaleValue || null,  // Sesuai schema (nullable)
+          displayOrder: opt.displayOrder,
+        })),
+      },
+    },
+    include: { option: true },
+  });
+  return newQuestion
+};
 
 const updateQuestionById = (id, questionData) => {
   const question = prisma.question.update({
@@ -84,5 +118,6 @@ module.exports = {
   updateQuestionById,
   deleteQuestionById,
   findQuestions,
-  findQuestionByNameField
+  findQuestionByNameField,
+  insertQuestionAndOption
 }

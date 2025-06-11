@@ -75,10 +75,10 @@ const forgetPassword = async (req, res) => {
 }
 
 const resetPassword = async (req, res) => {
-  const {password, confirmPassword } = req.body
-  const adminId = req.user.adminId
+  const {oldPassword, newPassword, confirmPassword } = req.body
+  const username = req.admin.username
   try {
-    const resetPasswordLink = await authService.authResetPassword(adminId, password, confirmPassword)
+    const resetPasswordLink = await authService.authResetPassword(username,oldPassword, newPassword, confirmPassword)
     res.status(200).json({
       status: 'success',
       message: 'Password berhasil direset',

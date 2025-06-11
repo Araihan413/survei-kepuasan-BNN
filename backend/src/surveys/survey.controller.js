@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const {verifyToken} = require('../middleware/auth.middleware')
 
-// ! get all survey
+// !mengambil semua survei beserta pertanyaan nya
 // ? pakai
 router.get('/questions', async (req, res) => {
   try {
@@ -23,6 +23,7 @@ router.get('/questions', async (req, res) => {
   }
 })
 
+// ! mengambil survei berdasarkan id dan pertanyaannya
 // ? pakai
 router.get('/:id/questions', async (req, res) => {
   const surveyId = parseInt(req.params.id)
@@ -45,7 +46,7 @@ router.get('/:id/questions', async (req, res) => {
 })
 
 
-// ! get all survey
+// ! mengambil semua survei tanpa pertanyaan
 // ? pakai
 router.get('/', async (req, res) => {
   try {
@@ -66,7 +67,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-// ! get detail survey
+// ! mengambil data survey berdasarkan id
 router.get('/:id', async (req, res) => {
   try {
     const surveyId = req.params.id
@@ -108,27 +109,6 @@ router.post('/',  async (req, res) => {
     })
   }
 })
-
-// ! buat banyak jawaban
-// router.post('/submit-survey', async (req, res) => {
-//   try {
-//     const dataSurvey = req.body
-//     const newSurvey = await surveyService.insertManySurvey(dataSurvey)
-//     res.status(201).json({
-//       status: 'success',
-//       message: 'Survei berhasil dibuat',
-//       data: newSurvey,
-//       newAccessToken: res.get('New-Access-Token')
-//     })
-//   }catch (error) {
-//     res.status(400).json({
-//       status: "error",
-//       message: "Something went wrong on the server",
-//       error: error.message
-//     })
-//   }
-// })
-
 
 // ! delete survey
 router.delete('/:id', async (req, res) => {

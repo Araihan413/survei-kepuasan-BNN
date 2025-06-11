@@ -28,6 +28,7 @@ const avgScorePerSurvey = async (startDate) => {
   const dataAvgScore = await prisma.$queryRaw`
     SELECT 
       s."title",
+      s."survey_id",
       AVG(o."scale_value") AS "averageScore"
     FROM "Answer" a
     JOIN "Respondent" r ON a."respondent_id" = r."respondent_id"
@@ -35,7 +36,7 @@ const avgScorePerSurvey = async (startDate) => {
     JOIN "Option" o ON a."option_id" = o."option_id"
     WHERE r."created_at" >= ${startDate}
       AND s."is_published" = true
-    GROUP BY s."title";
+    GROUP BY s."title" , s."survey_id";
   `
   return dataAvgScore
 }

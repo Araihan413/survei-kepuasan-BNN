@@ -7,6 +7,7 @@ import { MdFilterAlt } from "react-icons/md";
 import urlApi from "../../api/urlApi"
 import Button from "../Elements/Button"
 import PopupFilterRespondent from "../Fragments/PopupFilterRespondent"
+import socket from "../../socket";
 
 const Dashborad = () => {
 
@@ -87,6 +88,7 @@ const Dashborad = () => {
         throw new Error(dataAvgScore.message || dataAvgScore.error);
       }
       const data = dataAvgScore.data.map(item => ({
+        id: item.survey_id,
         avgValue: item.averageScore,
         maxValue: 5,
         nameSurvey: item.title
@@ -152,6 +154,15 @@ const Dashborad = () => {
     fetchData()
   }, [filterRespondent, avgFilter, countRespondentFilter])
 
+  const handleNewSurvey = async (data) => {
+    setLoading(true);
+    await Promise.all([
+      recentRespondents(filterRespondent),
+      avgScore(),
+      countRespondent(countRespondentFilter),
+    ]);
+    setLoading(false);
+  };
 
   useEffect(() => {
     const fetchDataSevice = async () => {
@@ -169,6 +180,13 @@ const Dashborad = () => {
       }
     }
     fetchDataSevice()
+
+    // ? socket
+    socket.on("new-survey", handleNewSurvey);
+
+    return () => {
+      socket.off("new-survey", handleNewSurvey);
+    };
   }, [])
 
   // ? option untuk filter periode

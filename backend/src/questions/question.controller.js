@@ -62,8 +62,9 @@ router.get('/', async (req, res) => {
 // ! create question
 router.post('/',  async (req, res) => {
   try {
-    const dataQuestion = req.body;
-    const newQuestion = await questionService.createQuestion(dataQuestion)
+    const data = req.body;
+    const {surveyId, adminId, questionsData} = data
+    const newQuestion = await questionService.createQuestion(parseInt(surveyId), adminId, questionsData)
     
     res.status(201).json({ 
       status: 'success',
@@ -75,8 +76,8 @@ router.post('/',  async (req, res) => {
 
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })

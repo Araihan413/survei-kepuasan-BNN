@@ -32,7 +32,7 @@ const findQuestionsInSurvey = async () => {
 
 const findSurveyIncludeQuestion = async (id) => {
   const survey = await prisma.survey.findUnique({
-    where : {
+    where: {
       surveyId: id
     },
     include: {
@@ -41,6 +41,11 @@ const findSurveyIncludeQuestion = async (id) => {
           displayOrder: 'asc'
         },
         include: {
+          admin: {
+            select: {
+              name: true
+            }
+          },
           option: {
             orderBy: {
               displayOrder: 'asc'
@@ -49,7 +54,8 @@ const findSurveyIncludeQuestion = async (id) => {
         }
       }
     }
-  })
+  });
+  
   return survey
 }
 
@@ -62,6 +68,7 @@ const findSurveys = async () => {
       isPublished: true,
       orderPage: true,
       createdAt: true,
+      isPersonal: true
     },
     orderBy: {
       orderPage: 'asc'
@@ -83,12 +90,18 @@ const findDetaiSurvey = async (id) => {
       isPublished: true,
       createdAt: true,
       updatedAt: true,
+      isPersonal: true,
+      adminId: true,
       _count: {
         select: {
           question: true
         }
+      }, admin: {
+        select: {
+          name: true
+        }
       }
-    }
+    }, 
   })
   return survey
 }
@@ -129,6 +142,14 @@ const deleteSurveyById = async (id) => {
 const insertSurvey = async (dataSurvey) => {
   const survey = await prisma.survey.create({
     data: dataSurvey,
+    select: {
+      surveyId: true,
+      title: true,
+      isPublished: true,
+      orderPage: true,
+      createdAt: true,
+      isPersonal: true
+    }
   })
   return survey
 }

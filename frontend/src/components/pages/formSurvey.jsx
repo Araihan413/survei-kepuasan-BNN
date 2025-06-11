@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import urlApi from "../../api/urlApi";
 import FormQuestionSurvey from "../Fragments/FormQuestionSurvey";
+import socket from "../../socket";
+
 
 const FormSurvey = () => {
   const [pageActive, setPageActive] = useState(1);
   // ? isi nya array yang berisi data survey
   const [dataForm, setDataForm] = useState([]);
   // ? isi nya id survey yang sedang tampil di layar
-  const [SurveyAvtive, setSurveyActive] = useState(null);
-  // ? isi nya object lyang ada data survey dan ada list questionnya
+  const [surveyActive, setSurveyActive] = useState(null);
+  // ? isi nya object yang ada data survey dan ada list questionnya
   const [listQuestion, setListQuestion] = useState([]);
   // ? isi nya array list service untuk option survey
   const [listService, setListService] = useState([]);
@@ -16,6 +18,8 @@ const FormSurvey = () => {
   const [loading, setLoading] = useState(true);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [error, setError] = useState(null);
+  const [dataSurveyActive, setDataSurveyActive] = useState(null);
+  const [submitSurvey, setSubmitSurvey] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,14 +53,15 @@ const FormSurvey = () => {
     };
 
     fetchData();
+    setDataSurveyActive(dataForm.find(item => item.surveyId === surveyActive));
   }, []);
 
   useEffect(() => {
-    if (!SurveyAvtive) return;
+    if (!surveyActive) return;
 
     const fetchData = async () => {
       try {
-        const response = await fetch(`${urlApi}/survey/${SurveyAvtive}/questions`);
+        const response = await fetch(`${urlApi}/survey/${surveyActive}/questions`);
         const survey = await response.json();
         if (!response.ok) throw new Error(survey.error);
         const questionActive = survey.data.question.filter(question => question.isActive === true);
@@ -66,7 +71,8 @@ const FormSurvey = () => {
       }
     }
     fetchData();
-  }, [SurveyAvtive]);
+    setDataSurveyActive(dataForm.find(item => item.surveyId === surveyActive));
+  }, [surveyActive]);
 
   useEffect(() => {
     if (dataForm.length > 0) {
@@ -81,6 +87,27 @@ const FormSurvey = () => {
   const handlePrevPage = () => {
     setPageActive(prev => prev - 1);
   };
+
+  const createNotification = async (data) => {
+    const dataNotif = {
+      notifText: data.notifText,
+      notifType: data.notifType,
+    }
+    try {
+      const response = await fetch(`${urlApi}/notification`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataNotif),
+      });
+      const newNotif = await response.json();
+      if (!response.ok) throw new Error(newNotif.message || newNotif.error);
+      return newNotif.data;
+    } catch (error) {
+      setError(error.message);
+    }
+  }
 
   const handleSubmit = async (response) => {
     const biodata = {};
@@ -104,10 +131,12 @@ const FormSurvey = () => {
         biodata[key] = value;
       }
     }
+
     const dataForm = {
       biodata,
       answers,
     }
+
     const postData = async () => {
       setLoadingSubmit(true);
       setError(null);
@@ -120,20 +149,29 @@ const FormSurvey = () => {
           },
           body: JSON.stringify(dataForm),
         });
+
         const data = await response.json();
-        if (!response.ok) {
-          const errorMsg = typeof data.error === 'string'
-            ? data.error
-            : JSON.stringify(data.error, null, 2);
-          throw new Error(errorMsg);
+        if (!response.ok) throw new Error(data.message || data.error);
+
+        if (response.ok) {
+          createNotification({
+            notifText: `${dataForm.biodata.name} telah Mengisi Survei`,
+            notifType: "survei",
+          })
+          setSubmitSurvey(true);
         }
+        // ✅ Emit WebSocket setelah berhasil
+        socket.emit("send-new-survey", dataForm); // atau `data` jika mau kirim data dari backend
+
         setLoadingSubmit(false);
+        localStorage.removeItem("survey-answers");
+
       } catch (error) {
         setError(error.message);
+        setLoadingSubmit(false);
       }
     }
     postData();
-    localStorage.removeItem("survey-answers");
   };
 
   if (loading) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-2xl text-sky-400">Loading...</p></div>;
@@ -142,29 +180,41 @@ const FormSurvey = () => {
   return (
     <>
       <section className="bg-sky-100 w-full min-h-screen h-max relative pb-10">
-        <div className="py-5 flex flex-col gap-10 justify-center items-center">
+        {submitSurvey ? (
+          <div className="py-5 flex flex-col gap-10 justify-center items-center">
+            <div className="flex flex-col items-center gap-3 w-full px-5">
+              <div className=" h-max md:w-120 relative rounded-xl overflow-hidden ">
+                <img src={dataSurveyActive?.bannerUrl ? dataSurveyActive.bannerUrl : "../aset/image/benner-survei.png"} alt="benner survei" className="w-full" />
+              </div>
 
-          <div className="flex flex-col items-center gap-10 w-full px-5">
-            <div className="w-full md:w-120 h-30 bg-white shadow-md rounded-xl relative overflow-hidden cursor-pointer">
-              <h1>ini gambar</h1>
-              <div className="w-full h-full absolute bg-white/0 hover:bg-white/10 hover:backdrop-blur-xs z-10 top-0"></div>
-            </div>
-            <div className=" w-full md:w-120 h-30 bg-white shadow-md rounded-xl relative overflow-hidden cursor-pointer">
-              <h1>ini gambar</h1>
-              <div className="w-full h-full absolute bg-white/0 hover:bg-white/10 hover:backdrop-blur-xs z-10 top-0"></div>
+              <div className=" w-full md:w-120 h-max bg-white shadow-md rounded-xl relative overflow-hidden  text-center">
+                <h1 className="p-5 text-xl font-bold py-10">Terima Kasih Telah Mengisi Survei</h1>
+              </div>
             </div>
           </div>
+        ) : (
+          <div className="py-5 flex flex-col gap-10 justify-center items-center">
+            <div className="flex flex-col items-center gap-3 w-full px-5">
+              <div className=" h-max md:w-120 relative rounded-xl overflow-hidden ">
+                <img src={dataSurveyActive?.bannerUrl ? dataSurveyActive.bannerUrl : "../aset/image/benner-survei.png"} alt="benner survei" className="w-full" />
+              </div>
 
-          <FormQuestionSurvey
-            dataListService={listService}
-            dataListQuestion={listQuestion}
-            onSubmit={handleSubmit}
-            onNextPage={handleNextPage}
-            onPrevPage={handlePrevPage}
-            pageActive={pageActive}
-            dataForm={dataForm}
-            loadingSubmit={loadingSubmit} />
-        </div>
+              <div className=" w-full md:w-120 h-max bg-white shadow-md rounded-xl relative overflow-hidden  text-center">
+                <h1 className="p-5">{dataSurveyActive?.textInformation ? dataSurveyActive.textInformation : "Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe ducimus sed voluptas, fugiat magnam at molestiae porro culpa perspiciatis aliquid temporibus facere et sunt illo doloremque cupiditate odio assumenda architecto!"}</h1>
+              </div>
+            </div>
+
+            <FormQuestionSurvey
+              dataListService={listService}
+              dataListQuestion={listQuestion}
+              onSubmit={handleSubmit}
+              onNextPage={handleNextPage}
+              onPrevPage={handlePrevPage}
+              pageActive={pageActive}
+              dataForm={dataForm}
+              loadingSubmit={loadingSubmit} />
+          </div>
+        )}
       </section>
     </>
   )

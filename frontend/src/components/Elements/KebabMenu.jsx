@@ -3,6 +3,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { CiMenuKebab } from "react-icons/ci";
 import { useState } from 'react';
+import { AlertDelete } from './Alert';
 
 const KebabMenu = ({ onEdit, onDelete, onDetail }) => {
 
@@ -13,20 +14,32 @@ const KebabMenu = ({ onEdit, onDelete, onDetail }) => {
   };
 
   const handleClick = (event) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
   };
 
-  const handleEditClick = () => {
+  const handleEditClick = (e) => {
+    e.stopPropagation();
     handleClose();
     onEdit(); // panggil fungsi dari parent
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = async (e) => {
+    e.stopPropagation();
     handleClose();
+    const confirmed = await AlertDelete({
+      title: 'Hapus Survei?',
+      text: 'Data survei termasuk pertanyaan di dalamnya akan hilang selamanya!',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!confirmed) return;
     onDelete(); // panggil fungsi dari parent
   };
 
-  const handleDetailClick = () => {
+  const handleDetailClick = (e) => {
+    e.stopPropagation();
     handleClose();
     onDetail(); // panggil fungsi dari parent
   };

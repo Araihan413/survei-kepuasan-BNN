@@ -11,13 +11,13 @@ import BarChartHorizontal from "../Elements/BarChartHorizontal"
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import urlApi from "../../api/urlApi"
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import socket from "../../socket";
 
 const Analysis = () => {
-  const navigate = useNavigate();
-  // const [searchParams] = useSearchParams();
-  // const surveyParamId = searchParams.get('id');
-  const ref = useRef(null);
+  const chartRefs = useRef({
+    pie: [],
+    bar: [],
+  });
 
   // ? data untuk option filter berdasarkan waktu
   const optionFilterValue = [
@@ -90,11 +90,17 @@ const Analysis = () => {
   };
 
 
-  const downloadImage = () => {
-    html2canvas(ref.current, { backgroundColor: null }).then(canvas => {
+  // Reset refs sebelum render (untuk menghindari akumulasi ref lama)
+  chartRefs.current.pie = [];
+  chartRefs.current.bar = [];
+  const downloadImage = (type, index) => {
+    const el = chartRefs.current[type]?.[index];
+    if (!el) return;
+
+    html2canvas(el, { backgroundColor: null }).then((canvas) => {
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
-      a.download = "diagram.png";
+      a.download = `${type}_chart_${index + 1}.png`;
       a.click();
     });
   };
@@ -185,7 +191,7 @@ const Analysis = () => {
       const dataSurvey = await response.json();
       if (!response.ok) throw new Error(dataSurvey.message || dataSurvey.error);
 
-      const filtered = dataSurvey.data.filter(item => item.title.toLowerCase() !== "biodata");
+      const filtered = dataSurvey.data.filter(item => item.isPersonal === false && item.isPublished === true);
       setDataListSurveyActive(filtered);
       return filtered;
     } catch (err) {
@@ -211,6 +217,7 @@ const Analysis = () => {
 
       //? Set diagram rata-rata
       setDataDiagramAvg({
+        id: id,
         avgValue: resultData.averageScore ?? 0,
         maxValue: 5,
         nameSurvey: resultData.surveyTitle ?? "-"
@@ -236,6 +243,7 @@ const Analysis = () => {
           resultData.surveyTitle ?? "-"
         );
         setDataQuestionTableText(dataQuestionTableText);
+        console.log("dataQuestionTableText", dataQuestionTableText);
       } else {
         setDataQuestionTableText({});
       }
@@ -265,6 +273,21 @@ const Analysis = () => {
     }
   };
 
+  const handleNewSurvey = async (data) => {
+    if (!surveyActive) return;
+    const fetchOnChange = async () => {
+      setLoading(true);
+      try {
+        await analysisSurvey(surveyActive, selectedFilter);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOnChange();
+  };
 
   // 🔹 Fetch pertama kali saat komponen mount
   useEffect(() => {
@@ -275,7 +298,6 @@ const Analysis = () => {
         if (surveys.length > 0) {
           const firstSurveyId = surveys[0].surveyId;
           setSurveyActive(firstSurveyId);
-          navigate(`/analisis?id=${firstSurveyId}`);
           await analysisSurvey(firstSurveyId, selectedFilter);
         }
       } catch (err) {
@@ -286,6 +308,12 @@ const Analysis = () => {
     };
 
     fetchInitialData();
+    // ? socket
+    socket.on("new-survey", handleNewSurvey);
+
+    return () => {
+      socket.off("new-survey", handleNewSurvey);
+    };
   }, []);
 
   // 🔹 Update data saat `surveyActive` atau `selectedFilter` berubah
@@ -305,53 +333,6 @@ const Analysis = () => {
     fetchOnChange();
   }, [surveyActive, selectedFilter]);
 
-
-  // ? data untuk table pertanyaan text
-  // const tablePertanyaanText = {
-  //   dataAnalisis: {
-  //     id: 1,
-  //     title: 'Survei Presepsi Kualitas Pelayanan',
-  //     countRespondent: 3,
-  //     pertanyaan: [
-  //       {
-  //         id: 1,
-  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-  //         text: [
-  //           "aku kurang enak ketika jshdas",
-  //           "kurang jelas atas pelayanan nya",
-  //           "nunggu nya sejam njir lah"
-  //         ],
-  //       },
-  //       {
-  //         id: 2,
-  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-  //         text: [
-  //           "tidak",
-  //           "-",
-  //           "aks"
-  //         ],
-  //       },
-  //       {
-  //         id: 3,
-  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-  //         text: [
-  //           "tidak",
-  //           "-",
-  //           "aks"
-  //         ],
-  //       },
-  //       {
-  //         id: 4,
-  //         pertanyaan: "Bagaimana pendapat anda tentang layanan pelayanan di P4GN?",
-  //         text: [
-  //           "tidak",
-  //           "-",
-  //           "aks"
-  //         ],
-  //       },
-  //     ]
-  //   }
-  // }
   // ? unduh data ke dalam excel
   // ? data yang masuk harus berupa array of objects
   const exportExcel = (data, fileName, headers) => {
@@ -366,24 +347,11 @@ const Analysis = () => {
   };
 
 
-  // ? data untuk table bar horizontal
-  // const dataBarHorizontal = [
-  //   {
-  //     label: 'Ya',
-  //     value: 25,
-  //   },
-  //   {
-  //     label: 'Tidak',
-  //     value: 15,
-  //   },
-  // ];
-
   const handleDropdownChange = (event) => {
     return setSelectedFilter(event.target.value);
   }
 
   const handleChangeSurvey = (id) => {
-    navigate(`/analisis?id=${id}`)
     setSurveyActive(id);
   }
 
@@ -402,6 +370,24 @@ const Analysis = () => {
     exportExcel(dataExcel, 'Table-Ranking', headers);
 
   }
+  const handleDownloadTableResponses = (dataTable) => {
+    const analisis = dataTable.dataSurvei.analisis;
+    // Buat header berdasarkan daftar pertanyaan
+    const headers = ['No', ...analisis.map(item => item.pertanyaan)];
+    // Ambil panjang maksimum dari array text
+    const maxTextLength = Math.max(...analisis.map(item => item.text.length));
+    // Susun data berdasarkan indeks dari isi text (baris per baris)
+    const dataExcel = [];
+    for (let i = 0; i < maxTextLength; i++) {
+      const row = { 'No': i + 1 };
+      analisis.forEach(item => {
+        row[item.pertanyaan] = item.text[i] || ''; // jika undefined, isi string kosong
+      });
+      dataExcel.push(row);
+    }
+    exportExcel(dataExcel, 'Table-Text-Responses', headers);
+  };
+
   return (
     <>
       <section className="py-5 px-5">
@@ -430,15 +416,17 @@ const Analysis = () => {
 
           <div className="flex flex-wrap justify-center gap-10 items-center mt-10">
             {dataPieChart.map((chart, index) => (
-              <div className="bg-white relative rounded-md border-[1px] border-gray-700/60 shadow-xl" key={index}>
+              <div className="bg-white relative rounded-md border-[1px] border-gray-700/60 shadow-lg" key={index}>
                 <div className="absolute top-5 right-5">
-                  < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload />} onClick={downloadImage} />
+                  < ButtonDownload color="bg-white"
+                    icon={<MdOutlineFileDownload />}
+                    onClick={() => downloadImage("pie", index)} />
                 </div>
                 <div className="px-5 pt-2 pb-2 border-b-[1px] border-gray-700/60">
                   <h1 className="text-base font-bold text-gray-700 mb-1">{chart.namaChart}</h1>
                   <span className="text-xs inline-block h-max text-gray-700 px-2 py-0.5 border-1 border-gray-700/60 rounded-sm bg-white">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
                 </div>
-                <div ref={ref} className="p-5">
+                <div ref={(el) => (chartRefs.current.pie[index] = el)} className="p-5">
                   <h1 className="text-base text-center font-bold mb-1">{chart.namaChart.toUpperCase()}</h1>
                   <PieChart data={chart.data} />
                 </div>
@@ -466,7 +454,7 @@ const Analysis = () => {
               <div className="relative">
                 <div className="flex gap-2 absolute -top-15 right-0">
                   <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
-                  < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
+                  < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={() => handleDownloadTableResponses(dataQuestionTableText)} text="Unduh" style="text-xs px-4" />
                 </div>
                 <div>
                   <ResponsesTable data={dataQuestionTableText} header={headerPertanyaanText()} width="w-[850px]" />
@@ -480,10 +468,17 @@ const Analysis = () => {
               <div key={index} className="mt-20 pt-15 relative w-max">
                 <div className="flex gap-2 absolute top-3 right-0">
                   <span className="text-xs font-semibold inline-block h-max text-white px-5 py-2 border-1  rounded-xl bg-biru-gelap">{optionFilterValue.find(item => item.value === selectedFilter).label || '-'}</span>
-                  < ButtonDownload color="bg-white" icon={<MdOutlineFileDownload className="text-lg" />} onClick={downloadImage} text="Unduh" style="text-xs px-4" />
+                  < ButtonDownload
+                    color="bg-white"
+                    icon={<MdOutlineFileDownload className="text-lg" />}
+                    onClick={() => downloadImage("bar", index)}
+                    text="Unduh"
+                    style="text-xs px-4" />
                 </div>
-                <div className="border-1 border-gray-700/60 rounded-xl p-5 pl-0 box-border shadow-md">
-                  <BarChartHorizontal data={dataChart} height="h-[200px]" width="w-[850px]" />
+                <div className="border-1 border-gray-700/60 rounded-xl pl-0 box-border shadow-md" >
+                  <div className="p-5" ref={(el) => (chartRefs.current.bar[index] = el)}>
+                    <BarChartHorizontal data={dataChart} height="h-[200px]" width="w-[850px]" />
+                  </div>
                 </div>
               </div>
             ))

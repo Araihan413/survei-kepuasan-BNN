@@ -4,7 +4,7 @@ import { MdOutlineEmail } from "react-icons/md";
 import Button from "../Elements/Button";
 import { useForm } from 'react-hook-form';
 import { Link } from "react-router-dom";
-
+import { IoMdInformationCircleOutline } from "react-icons/io";
 const FormLogin = ({ onSubmit, errorMessage }) => {
   const {
     register,
@@ -34,7 +34,11 @@ const FormLogin = ({ onSubmit, errorMessage }) => {
                 }
               })}
             />
-            {errors.username && <span className="absolute -bottom-5 left-2 text-red-400/70 text-xs ">{errors.username.message}</span>}
+            {errors.username &&
+              <div className='absolute -bottom-5 left-1 flex gap-1 text-red-400/70'>
+                <IoMdInformationCircleOutline />
+                <span className=" text-xs ">{errors.username.message}</span>
+              </div>}
           </div>
 
           <div className="flex flex-col relative ">
@@ -52,7 +56,11 @@ const FormLogin = ({ onSubmit, errorMessage }) => {
                 }
               })}
             />
-            {errors.password && <span className="absolute -bottom-5 left-2 text-red-400/70 text-xs ">{errors.password.message}</span>}
+            {errors.password &&
+              <div className='absolute -bottom-5 left-1 flex gap-1 text-red-400/70'>
+                <IoMdInformationCircleOutline />
+                <span className=" text-xs ">{errors.password.message}</span>
+              </div>}
           </div>
           {errorMessage &&
             <div className="text-sm text-red-400/70 absolute w-full bottom-11">
@@ -70,4 +78,3 @@ const FormLogin = ({ onSubmit, errorMessage }) => {
 }
 export default FormLogin
 
-// onClick = {() => { navigate('/dashboard') }}

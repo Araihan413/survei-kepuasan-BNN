@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const admin = require('../admin/admin.repository')
 
 const generateAccessToken = (admin) => {
- return jwt.sign({adminId: admin.adminId, username: admin.username, role: admin.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'})
+ return jwt.sign({adminId: admin.adminId, username: admin.username, role: admin.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '30m'})
 }
 
 const generateRefreshToken = (admin) => {
