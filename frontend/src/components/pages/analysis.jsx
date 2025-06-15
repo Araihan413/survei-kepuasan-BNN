@@ -411,7 +411,7 @@ const Analysis = () => {
           </div>
 
           <div className="mt-20 flex justify-center">
-            <CircleProgressbar dataSurvey={dataDiagramAvg} width={'max-w-[280px]'} sizeFont='text-xl'></CircleProgressbar>
+            <CircleProgressbar dataSurvey={dataDiagramAvg} width={'max-w-[270px]'} sizeFont='text-xl'></CircleProgressbar>
           </div>
 
           <div className="flex flex-wrap justify-center gap-10 items-center mt-10">

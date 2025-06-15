@@ -7,6 +7,8 @@ import { AlertFailed, AlertSuccess } from '../Elements/Alert';
 import { IoClose } from "react-icons/io5";
 import { FaTrashCan } from "react-icons/fa6";
 import { AuthContext } from '../../AuthContext';
+import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box';
 const PopupCreateSurvey = ({ open, handleCancel, lengthSurvey, onSuccessAdd }) => {
   const {
     register,
@@ -200,8 +202,17 @@ const PopupCreateService = ({ open, handleCancel, onSuccessAdd }) => {
   </>)
 }
 
-const PopupCreateQuestion = ({ surveyId, lengthQuestion, handleClose, onSuccessSumbit }) => {
-  const [questions, setQuestions] = useState([]);
+const PopupCreateQuestion = ({ open, surveyId, lengthQuestion, handleClose, onSuccessSumbit }) => {
+  const [questions, setQuestions] = useState([
+    {
+      question: "",
+      type: "text",
+      required: false,
+      options: [""], // Untuk tipe 'opsi'
+      scaleOptions: null, // Untuk tipe 'skala'
+      scaleValues: null // Untuk nilai skala
+    }
+  ]);
   const { admin } = useContext(AuthContext);
 
 
@@ -245,7 +256,6 @@ const PopupCreateQuestion = ({ surveyId, lengthQuestion, handleClose, onSuccessS
 
     setQuestions(updated);
   };
-
 
   const handleOptionChange = (qIndex, oIndex, value) => {
     const updated = [...questions];
@@ -296,7 +306,14 @@ const PopupCreateQuestion = ({ surveyId, lengthQuestion, handleClose, onSuccessS
         if (responses.ok) {
           onSuccessSumbit();
           AlertSuccess({ text: "Pertanyaan berhasil disimpan!" })
-          setQuestions([]);
+          setQuestions([{
+            question: "",
+            type: "text",
+            required: false,
+            options: [""],
+            scaleOptions: null,
+            scaleValues: null
+          }]);
           handleClose()
         }
       } catch (error) {
@@ -309,7 +326,16 @@ const PopupCreateQuestion = ({ surveyId, lengthQuestion, handleClose, onSuccessS
   };
 
   const handleCancel = () => {
-    setQuestions([]);
+    setQuestions([
+      {
+        question: "",
+        type: "text",
+        required: false,
+        options: [""],
+        scaleOptions: null,
+        scaleValues: null
+      }
+    ]);
     handleClose()
   };
 
@@ -373,87 +399,102 @@ const PopupCreateQuestion = ({ surveyId, lengthQuestion, handleClose, onSuccessS
     }
   };
 
-  return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <h2 className="text-xl font-bold mb-4 text-center">Buat Pertanyaan</h2>
-      {questions.map((q, index) => (
-        <div key={index} className="p-4 rounded-md mb-4 space-y-2 w-150 bg-white shadow-md">
-          <div className='flex justify-end'>
-            <select
-              value={q.type}
-              onChange={(e) => handleQuestionChange(index, "type", e.target.value)}
-              className="p-2 w-30 rounded-md bg-slate-100 shadow-md cursor-pointer border border-gray-300 text-xs outline-0"
-            >
-              <option value="text">Teks</option>
-              <option value="opsi">Opsi Pilihan</option>
-              <option value="skala">Skala</option>
-            </select>
-          </div>
-          <textarea
-            value={q.question}
-            onChange={(e) => handleQuestionChange(index, "question", e.target.value)}
-            rows={1}
-            placeholder="Tulis pertanyaan..."
-            className="p-2 w-full outline-0 border-b-1 border-gray-300 focus:border-gray-500 focus:border-b-2 overflow-y-hidden whitespace-pre-wrap break-words"
-          />
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 700,
+    maxHeight: '90vh',
+    bgcolor: 'background.paper',
+    borderRadius: '10px',
+    overflow: 'auto',
+    boxShadow: 24,
+    p: 4,
+  };
 
-          {renderAnswerInput(q, index)}
-          <div className='flex gap-4 justify-end items-end mt-3'>
-            <button
-              onClick={() => handleDeleteQuestion(index)}
-              className="text-red-400 text-sm flex items-center hover:text-red-500 cursor-pointer"
-            >
-              <FaTrashCan size={16} />
-            </button>
-            <label className="flex items-center justify-center space-x-2 pl-4 border-l border-gray-400 cursor-pointer">
-              <input
-                className='cursor-pointer'
-                type="checkbox"
-                checked={q.required}
-                onChange={(e) => handleQuestionChange(index, "required", e.target.checked)}
+  return (
+    <Modal
+      open={open}
+      onClose={() => { }} // Ini akan mencegah penutupan
+      disableBackdropClick // Untuk MUI v5
+      disableEscapeKeyDown // Untuk mencegah penutupan dengan ESC
+    >
+      <Box sx={style}>
+        <div className="p-4 max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold mb-4 text-center">Buat Pertanyaan</h2>
+          {questions.map((q, index) => (
+            <div key={index} className="p-4 rounded-md mb-4 space-y-2 w-150 bg-white shadow-md">
+              <div className='flex justify-end'>
+                <select
+                  value={q.type}
+                  onChange={(e) => handleQuestionChange(index, "type", e.target.value)}
+                  className="p-2 w-30 rounded-md bg-slate-100 shadow-md cursor-pointer border border-gray-300 text-xs outline-0"
+                >
+                  <option value="text">Teks</option>
+                  <option value="opsi">Opsi Pilihan</option>
+                  <option value="skala">Skala</option>
+                </select>
+              </div>
+              <textarea
+                value={q.question}
+                onChange={(e) => handleQuestionChange(index, "question", e.target.value)}
+                rows={1}
+                placeholder="Tulis pertanyaan..."
+                className="p-2 w-full outline-0 border-b-1 border-gray-300 focus:border-gray-500 focus:border-b-2 overflow-y-hidden whitespace-pre-wrap break-words"
               />
-              <span className='text-xs'>Wajib diisi</span>
-            </label>
+
+              {renderAnswerInput(q, index)}
+              <div className='flex gap-4 justify-end items-end mt-3'>
+                <button
+                  onClick={() => handleDeleteQuestion(index)}
+                  className="text-red-400 text-sm flex items-center hover:text-red-500 cursor-pointer"
+                >
+                  <FaTrashCan size={16} />
+                </button>
+                <label className="flex items-center justify-center space-x-2 pl-4 border-l border-gray-400 cursor-pointer">
+                  <input
+                    className='cursor-pointer'
+                    type="checkbox"
+                    checked={q.required}
+                    onChange={(e) => handleQuestionChange(index, "required", e.target.checked)}
+                  />
+                  <span className='text-xs'>Wajib diisi</span>
+                </label>
+              </div>
+            </div>
+          ))}
+
+          <div className="flex justify-between mt-6">
+
+            <button
+              onClick={handleAddQuestion}
+              className="bg-biru-muda text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600"
+            >
+              + Tambah Pertanyaan
+            </button>
+            {questions.length > 0 && (
+              <div className='flex gap-5'>
+                <button
+                  onClick={handleCancel}
+                  className="bg-red-200 text-red-800 px-4 py-2 rounded-md cursor-pointer hover:bg-red-300"
+                >
+                  Batal
+                </button>
+
+                <button
+                  onClick={handleSave}
+                  className="bg-blue-200 text-biru-tua px-4 py-2 rounded-md cursor-pointer hover:bg-blue-300"
+                  disabled={questions.length === 0}
+                >
+                  Simpan
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      ))}
-
-      <div className="flex justify-between mt-6">
-
-        <button
-          onClick={handleAddQuestion}
-          className="bg-biru-muda text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600"
-        >
-          + Tambah Pertanyaan
-        </button>
-        {questions.length === 0 && (
-          <button
-            onClick={handleCancel}
-            className="bg-red-200 ml-5 text-red-800 px-4 py-2 rounded-md cursor-pointer hover:bg-red-300"
-          >
-            Batal
-          </button>
-        )}
-        {questions.length > 0 && (
-          <div className='flex gap-5'>
-            <button
-              onClick={handleCancel}
-              className="bg-red-200 text-red-800 px-4 py-2 rounded-md cursor-pointer hover:bg-red-300"
-            >
-              Batal
-            </button>
-
-            <button
-              onClick={handleSave}
-              className="bg-blue-200 text-biru-tua px-4 py-2 rounded-md cursor-pointer hover:bg-blue-300"
-              disabled={questions.length === 0}
-            >
-              Simpan
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+      </Box>
+    </Modal>
   );
 };
 

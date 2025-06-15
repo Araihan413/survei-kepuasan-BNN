@@ -5,7 +5,7 @@ import { AuthContext } from "../../AuthContext";
 import { useContext } from "react";
 import Breadcrumb from "../Elements/Breadcrumb";
 
-const NavbarTop = () => {
+const NavbarTop = ({ logo = false }) => {
   const { admin } = useContext(AuthContext);
   const navigasi = useNavigate();
   const handleToProfil = () => {
@@ -23,8 +23,16 @@ const NavbarTop = () => {
   return (
     <>
       <nav className="flex justify-between items-center fixed top-0 left-0 right-0 z-30 bg-white px-5 py-3 pr-12 shadow-md">
-        <div className="ml-56 ">
-          <Breadcrumb />
+        <div className="flex items-center">
+          {logo ? (
+            <div className="flex gap-3 items-center  left-5 cursor-pointer" onClick={() => navigasi("/dashboard")}>
+              <img className="w-10" src="/aset/logo/logoBnn.png" alt="logo bnn" />
+              <h1 className="text-xl font-bold">SIGAP BNN</h1>
+            </div>
+          ) : null}
+          <div className={`${logo ? "ml-20" : "ml-56"}`}>
+            <Breadcrumb />
+          </div>
         </div>
         <div className="flex items-center gap-6">
           <button onClick={handleToNotification} className="text-[#dfb400] text-xl bg-[#fff8da]/50 p-2 rounded-md cursor-pointer">

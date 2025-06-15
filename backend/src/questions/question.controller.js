@@ -53,8 +53,8 @@ router.get('/', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -82,13 +82,11 @@ router.post('/',  async (req, res) => {
   }
 })
 
-// ! update question
-router.patch('/:id', async (req, res) => {
+// ! update question and option
+router.patch('/', async (req, res) => {
+  const { questionData, optionChanges } = req.body;
   try{
-    const id = parseInt(req.params.id);
-    if (typeof id !== 'number') throw Error('id harus angka')
-    const DataQuestion = req.body;
-    const updateSurvey = await questionService.updateQuestionById(id, DataQuestion)
+    const updateSurvey = await questionService.updateQuestionAndOption(questionData, optionChanges)
     
     res.status(200).json({ 
       status: 'success',
@@ -99,14 +97,37 @@ router.patch('/:id', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
+    })
+  }
+})
+
+// ! update question
+router.patch('/:id', async (req, res) => {
+  
+  try{
+    const id = parseInt(req.params.id);
+    if (typeof id !== 'number') throw Error('id harus angka')
+    const data = req.body;
+    const updateSurvey = await questionService.updateQuestionById(id, data)
+    res.status(200).json({ 
+      status: 'success',
+      message: 'question berhasil diupdate',
+      data: updateSurvey,
+      newAccessToken: res.get('New-Access-Token')
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+      error: error
     })
   }
 })
 
 // ! delete question
-router.delete('/:id',verifyToken, async (req, res) => {
+router.delete('/:id',  async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (typeof id !== 'number') throw Error('id harus angka')
@@ -120,8 +141,8 @@ router.delete('/:id',verifyToken, async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
    }
 })

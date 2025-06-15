@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import ButtonDownload from "./ButtonDownload";
 import { MdOutlineFileDownload } from "react-icons/md";
 import DropdownColor from "./DropdownColor";
@@ -36,6 +36,26 @@ const CircleProgressbar = (props) => {
   ];
 
   const [selectedOption, setSelectedOption] = useDiagramColor(id);
+  const [progressValue, setProgressValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const duration = 500; // dalam ms
+    const frameRate = 60;
+    const step = value / (duration / (1000 / frameRate));
+
+    const animate = () => {
+      start += step;
+      if (start >= value) {
+        setProgressValue(value);
+      } else {
+        setProgressValue(start);
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }, [value]);
 
   const handleChangeColor = (event) => {
     setSelectedOption(event.target.value);
@@ -73,23 +93,23 @@ const CircleProgressbar = (props) => {
 
       <div
         ref={ref}
-        className={`flex flex-col items-center ${width} py-5 relative rounded-full`}
+        className={`flex flex-col items-center ${width} pb-5 relative`}
       >
-        <div className="w-full max-w-[300px] aspect-square font-bold px-10 pt-5">
+        <div className="w-full max-w-[300px] aspect-square font-bold px-5 flex justify-center items-center">
           <CircularProgressbar
-            value={value}
+            value={progressValue}
             maxValue={max}
-            text={`${value.toFixed(2)}`}
+            text={`${progressValue.toFixed(2)}`}
             strokeWidth={18}
             styles={buildStyles({
               pathColor: selectedOption,
               textColor: "#333",
-              trailColor: `${selectedOption}22`, // trailColor menyesuaikan warna tapi transparan
+              trailColor: `${selectedOption}22`,
               textSize: "18px",
             })}
           />
         </div>
-        <div className="absolute bottom-8">
+        <div className="w-11/12">
           <h1 className={`text-center ${sizeFont} font-bold`}>{nameSurvey}</h1>
         </div>
       </div>

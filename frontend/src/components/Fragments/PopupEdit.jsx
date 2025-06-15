@@ -1,8 +1,12 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { useEffect, useContext, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { set, useForm } from 'react-hook-form';
 import { AuthContext } from '../../AuthContext';
 import { IoClose } from "react-icons/io5";
+import { AlertFailed, AlertSuccess } from '../Elements/Alert';
+import urlApi from '../../api/urlApi';
+import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box';
 
 const PopupEdit = ({ dataPopup, open, handleClose, layoutForm, onSubmitSuccess }) => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
@@ -77,136 +81,176 @@ export default PopupEdit
 
 
 export const PopupEditQuestion = ({
-  surveyId,
-  initialQuestion, // Single question object
-  handleClose,
+  open,
+  onClose,
+  initialQuestion,
   onSuccessSubmit
 }) => {
-  // const [initialQuestion] = useState(initialQuestion);
+  const [originalQuestion, setOriginalQuestion] = useState(initialQuestion);
   const [question, setQuestion] = useState({
     ...initialQuestion,
     options: initialQuestion.options ? [...initialQuestion.options] : []
   });
   const { admin } = useContext(AuthContext);
+  // const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOriginalQuestion(initialQuestion);
+    setQuestion({
+      ...initialQuestion,
+      options: initialQuestion.options ? [...initialQuestion.options] : []
+    });
+  }, [initialQuestion]);
 
   const handleQuestionChange = (field, value) => {
     const updated = { ...question, [field]: value };
 
     if (field === "type") {
+      // Reset semua opsi ketika ganti tipe
+      updated.options = [];
+      updated.scaleOptions = null;
+      updated.scaleValues = null;
+
+
       if (value === "skala") {
+        // Reset ke template skala
         updated.scaleOptions = ["Sangat Setuju", "Setuju", "Tidak Setuju", "Sangat Tidak Setuju"];
         updated.scaleValues = [4, 3, 2, 1];
-        updated.options = [""];
-      } else if (value === "opsi") {
-        updated.options = updated.options || [""];
-        updated.scaleOptions = null;
-        updated.scaleValues = null;
-      } else {
-        updated.options = [""];
+        updated.options = updated.scaleOptions.map((text, index) => ({
+          optionText: text,
+          scaleValue: updated.scaleValues[index],
+          displayOrder: index + 1
+        }));
+      }
+      else if (value === "opsi") {
+        updated.options = [{
+          optionText: "",
+          displayOrder: 1 // Set displayOrder awal
+        }];
         updated.scaleOptions = null;
         updated.scaleValues = null;
       }
-    }
+      else {
+        // Tipe text - kosongkan semua opsi
+        updated.options = [];
+        updated.scaleOptions = null;
+        updated.scaleValues = null;
+      }
 
-    console.log("updated", updated)
+      // Tandai opsi lama untuk dihapus jika berpindah dari skala
+      if (question.type === "skala" && value !== "skala") {
+        updated._deletedOptions = originalQuestion.options?.map(opt => opt.optionId) || [];
+      }
+    }
     setQuestion(updated);
   };
 
   const handleOptionChange = (oIndex, value) => {
     const updated = { ...question };
 
-    // Jika opsi sudah ada (punya optionId), kita buat flag isModified
-    if (updated.options[oIndex].optionId) {
-      updated.options[oIndex] = {
-        ...updated.options[oIndex],
-        optionText: value,
-        isModified: true // Tambahkan flag modifikasi
-      };
-    } else {
-      // Jika opsi baru
-      updated.options[oIndex] = {
-        optionText: value,
-        displayOrder: oIndex + 1
-      };
-    }
+    updated.options[oIndex] = {
+      ...updated.options[oIndex],
+      optionText: value,
+      // Pertahankan displayOrder yang ada
+      displayOrder: updated.options[oIndex].displayOrder || oIndex + 1,
+      ...(updated.options[oIndex]?.optionId && { isModified: true })
+    };
 
-    console.log("updated", updated)
     setQuestion(updated);
   };
+  const handleAddOption = () => {
+    const updated = { ...question };
+    const newOrder = updated.options.length + 1;
 
+    updated.options.push({
+      optionText: "",
+      displayOrder: newOrder // Set displayOrder otomatis
+    });
+
+    setQuestion(updated);
+  };
+  const handleRemoveOption = (oIndex) => {
+    const updated = { ...question };
+    const removedOption = updated.options[oIndex];
+
+    // Tandai opsi yang dihapus jika memiliki ID
+    if (removedOption.optionId) {
+      updated._deletedOptions = [
+        ...(updated._deletedOptions || []),
+        removedOption.optionId
+      ];
+    }
+
+    // Hapus opsi dari array
+    updated.options.splice(oIndex, 1);
+
+    // Perbarui displayOrder untuk semua opsi yang tersisa
+    updated.options = updated.options.map((opt, index) => ({
+      ...opt,
+      displayOrder: index + 1 // Reset urutan mulai dari 1
+    }));
+
+    setQuestion(updated);
+  };
   const getOptionChanges = () => {
-    const originalOptions = initialQuestion.options || [];
-    const currentOptions = question.options || [];
-
     const changes = {
       toCreate: [],
       toUpdate: [],
-      toDelete: [],
-      unchanged: []
+      toDelete: []
     };
 
-    // 1. Identifikasi opsi yang dihapus (ada di original tapi tidak ada di current)
-    originalOptions.forEach(originalOpt => {
-      const stillExists = currentOptions.some(
-        currentOpt => currentOpt.optionId === originalOpt.optionId
+    // Handle delete hanya jika ada opsi sebelumnya
+    if (originalQuestion.options?.length) {
+      const originalOptionIds = originalQuestion.options.map(opt => opt.optionId);
+      const currentOptionIds = question.options
+        ?.map(opt => opt.optionId)
+        .filter(Boolean) || [];
+
+      changes.toDelete = originalOptionIds.filter(
+        id => !currentOptionIds.includes(id)
       );
+    }
 
-      if (!stillExists) {
-        changes.toDelete.push(originalOpt.optionId);
+    // Handle create berdasarkan tipe
+    if (question.type === "skala") {
+      if (!question.scaleValues) {
+        return changes;
       }
-    });
-
-    // 2. Proses opsi yang ada di current
-    currentOptions.forEach((currentOpt, index) => {
-      // Opsi baru (tanpa optionId)
-      if (!currentOpt.optionId) {
-        changes.toCreate.push({
-          optionText: currentOpt.optionText,
-          displayOrder: index + 1,
+      changes.toCreate = question.options?.map((opt, index) => ({
+        optionText: opt.optionText,
+        scaleValue: question?.scaleValues[index],
+        displayOrder: index + 1,
+        questionId: question.questionId
+      }));
+    }
+    else if (question.type === "opsi") {
+      changes.toCreate = question.options
+        .filter(opt => !opt.optionId) // Hanya opsi baru
+        .map((opt, index) => ({
+          optionText: opt.optionText,
+          displayOrder: opt.displayOrder,
           questionId: question.questionId
-        });
-      }
-      // Opsi yang sudah ada
-      else {
-        const originalOpt = originalOptions.find(
-          opt => opt.optionId === currentOpt.optionId
-        );
-
-        // Opsi diubah
-        if (originalOpt && originalOpt.optionText !== currentOpt.optionText) {
-          changes.toUpdate.push({
-            optionId: currentOpt.optionId,
-            optionText: currentOpt.optionText,
-            displayOrder: index + 1
-          });
-        }
-        // Opsi tidak berubah
-        else {
-          changes.unchanged.push(currentOpt.optionId);
-        }
-      }
-    });
+        }));
+    }
 
     return changes;
-  };
-
-  const handleAddOption = () => {
-    const updated = { ...question };
-    updated.options.push("");
-    setQuestion(updated);
-  };
-
-  const handleRemoveOption = (oIndex) => {
-    const updated = { ...question };
-    updated.options.splice(oIndex, 1);
-    setQuestion(updated);
   };
 
   const handleSave = () => {
     const optionChanges = getOptionChanges();
 
+    // Gabungkan opsi yang dihapus manual
+    if (question._deletedOptions?.length) {
+      optionChanges.toDelete = [
+        ...new Set([
+          ...optionChanges.toDelete,
+          ...question._deletedOptions
+        ])
+      ];
+    }
+
     const payload = {
-      surveyId,
+      surveyId: question.surveyId,
       adminId: admin.id,
       questionData: {
         questionId: question.questionId,
@@ -215,15 +259,13 @@ export const PopupEditQuestion = ({
         isRequired: question.required,
         displayOrder: question.displayOrder
       },
-      optionChanges // Sertakan perubahan opsi
+      optionChanges
     };
-
-    console.log("Payload yang akan dikirim:", payload);
 
     const updateQuestion = async () => {
       try {
         const response = await fetch(`${urlApi}/question`, {
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
@@ -233,19 +275,23 @@ export const PopupEditQuestion = ({
 
         onSuccessSubmit();
         AlertSuccess({ text: "Pertanyaan berhasil diperbarui!" });
-        handleClose();
+        onClose();
       } catch (error) {
         AlertFailed({ text: error.message });
       }
     };
-
     updateQuestion();
   };
 
   const renderAnswerInput = () => {
     switch (question.type) {
       case "text":
-        return <input type="text" placeholder="Jawaban teks" className="border-b-1 border-gray-300 p-2 w-full mt-2" disabled />;
+        return <input
+          type="text"
+          placeholder="Jawaban teks"
+          className="border-b-1 border-gray-300 p-2 w-full mt-2"
+          disabled
+        />;
       case "opsi":
         return (
           <div className="space-y-2 mt-2">
@@ -289,12 +335,12 @@ export const PopupEditQuestion = ({
         return (
           <div className="mt-2">
             <div className="flex flex-col space-y-2 items-start">
-              {question.scaleOptions.map((label, oIdx) => (
+              {question.options.map((label, oIdx) => (
                 <label key={oIdx} className="flex items-center gap-3 w-full">
                   <input type="radio" disabled className='-mb-0.5' />
-                  <span className="flex-1">{label}</span>
+                  <span className="flex-1">{label.optionText}</span>
                   <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    Nilai: {question.scaleValues[oIdx]}
+                    Nilai: {label.scaleValue}
                   </span>
                 </label>
               ))}
@@ -305,61 +351,82 @@ export const PopupEditQuestion = ({
         return null;
     }
   };
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 700,
+    maxHeight: '90vh',
+    bgcolor: 'background.paper',
+    borderRadius: '10px',
+    overflow: 'auto',
+    boxShadow: 24,
+    p: 4,
+  };
 
   return (
-    <div className="w-full mx-auto ">
+    <Modal
+      open={open}
+      onClose={() => { }}
+    >
+      <Box sx={style}>
+        <div className="w-full mx-auto">
+          <h1 className='text-lg font-semibold mb-4'>Edit Pertanyaan</h1>
+          <div className="p-4 rounded-md mb-4 space-y-2 w-full shadow-md">
+            <div className='flex justify-end'>
+              <select
+                value={question.type || ""}
+                onChange={(e) => handleQuestionChange("type", e.target.value)}
+                className="p-2 w-30 rounded-md bg-slate-100 shadow-md cursor-pointer border border-gray-300 text-xs outline-0"
+              >
+                <option value="text">Teks</option>
+                <option value="opsi">Opsi Pilihan</option>
+                <option value="skala">Skala</option>
+              </select>
+            </div>
 
-      <div className="p-4 rounded-md mb-4 space-y-2 w-full bg-white shadow-md">
-        <div className='flex justify-end'>
-          <select
-            value={question.type || ""}
-            onChange={(e) => handleQuestionChange("type", e.target.value)}
-            className="p-2 w-30 rounded-md bg-slate-100 shadow-md cursor-pointer border border-gray-300 text-xs outline-0"
-          >
-            <option value="text">Teks</option>
-            <option value="opsi">Opsi Pilihan</option>
-            <option value="skala">Skala</option>
-          </select>
-        </div>
-
-        <textarea
-          value={question.question || ""}
-          onChange={(e) => handleQuestionChange("question", e.target.value)}
-          rows={1}
-          placeholder="Tulis pertanyaan..."
-          className="p-2 w-full outline-0 border-b-1 border-gray-300 focus:border-gray-500 focus:border-b-2 overflow-y-hidden whitespace-pre-wrap break-words"
-        />
-
-        {renderAnswerInput()}
-
-        <div className='flex gap-4 justify-end items-end mt-3'>
-          <label className="flex items-center justify-center space-x-2 cursor-pointer">
-            <input
-              className='cursor-pointer'
-              type="checkbox"
-              checked={question.required}
-              onChange={(e) => handleQuestionChange("required", e.target.checked)}
+            <textarea
+              value={question.question || ""}
+              onChange={(e) => handleQuestionChange("question", e.target.value)}
+              rows={1}
+              placeholder="Tulis pertanyaan..."
+              className="p-2 w-full outline-0 border-b-1 border-gray-300 focus:border-gray-500 focus:border-b-2 overflow-y-hidden whitespace-pre-wrap break-words"
             />
-            <span className='text-xs'>Wajib diisi</span>
-          </label>
-        </div>
-      </div>
 
-      <div className="flex justify-end gap-5 mt-6">
-        <button
-          onClick={handleClose}
-          className="bg-red-200 text-red-800 px-4 py-2 rounded-md cursor-pointer hover:bg-red-300"
-        >
-          Batal
-        </button>
-        <button
-          onClick={handleSave}
-          className="bg-blue-200 text-biru-tua px-4 py-2 rounded-md cursor-pointer hover:bg-blue-300"
-        >
-          Simpan Perubahan
-        </button>
-      </div>
-    </div>
+            {renderAnswerInput()}
+
+            <div className='flex gap-4 justify-end items-end mt-3'>
+              <label className="flex items-center justify-center space-x-2 cursor-pointer">
+                <input
+                  className='cursor-pointer'
+                  type="checkbox"
+                  checked={question.required}
+                  onChange={(e) => handleQuestionChange("required", e.target.checked)}
+                />
+                <span className='text-xs'>Wajib diisi</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-5 mt-6">
+            <button
+              onClick={onClose}
+              className="bg-red-200 text-red-800 px-4 py-2 rounded-md cursor-pointer hover:bg-red-300"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleSave}
+              className="bg-blue-200 text-biru-tua px-4 py-2 rounded-md cursor-pointer hover:bg-blue-300"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+      </Box>
+    </Modal>
   );
 };
+
 

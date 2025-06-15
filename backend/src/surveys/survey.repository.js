@@ -9,6 +9,9 @@ const findQuestionsInSurvey = async () => {
       isPublished: true,
       orderPage: true,
       isPersonal: true,
+      createdAt: true,
+      textInformation: true,
+      bannerUrl: true,
       question: {
         select: {
           questionId: true,
@@ -68,7 +71,9 @@ const findSurveys = async () => {
       isPublished: true,
       orderPage: true,
       createdAt: true,
-      isPersonal: true
+      isPersonal: true,
+      textInformation: true,
+      bannerUrl: true,
     },
     orderBy: {
       orderPage: 'asc'
@@ -91,6 +96,8 @@ const findDetaiSurvey = async (id) => {
       createdAt: true,
       updatedAt: true,
       isPersonal: true,
+      bannerUrl: true,
+      textInformation: true,
       adminId: true,
       _count: {
         select: {
@@ -118,7 +125,10 @@ const updateSurveyById = async (id, dataSurvey) => {
       title: true,
       description: true,
       isPublished: true,
-      updatedAt: true
+      updatedAt: true,
+      isPersonal: true,
+      bannerUrl: true,
+      textInformation: true
     }
   })
   return survey

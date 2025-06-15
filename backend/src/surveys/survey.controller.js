@@ -2,6 +2,18 @@ const surveyService = require('./survey.service')
 const express = require('express');
 const router = express.Router();
 const {verifyToken} = require('../middleware/auth.middleware')
+const multer = require('multer');
+const upload = multer({
+  dest: 'public/uploads/',
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'), false);
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
 
 // !mengambil semua survei beserta pertanyaan nya
 // ? pakai
@@ -17,8 +29,8 @@ router.get('/questions', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -39,8 +51,8 @@ router.get('/:id/questions', async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -61,8 +73,8 @@ router.get('/', async (req, res) => {
   }catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -83,8 +95,8 @@ router.get('/:id', async (req, res) => {
   }catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -104,8 +116,8 @@ router.post('/',  async (req, res) => {
   }catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -124,8 +136,8 @@ router.delete('/:id', async (req, res) => {
   }catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
@@ -145,10 +157,34 @@ router.patch('/:id',  async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
+
+router.post('/update', upload.single('banner'), async (req, res) => {
+  try {
+    const { surveyId, textInformation } = req.body;
+    const id = Number(surveyId);
+  if (isNaN(id)) {
+    return res.status(400).json({ status: "error", message: "Survei Id tidak falid" });
+    }
+    const file = req.file;
+    const uploadBenner = await surveyService.uploadBannerSurvey(id,  textInformation, file);
+    res.status(200).json({
+      status: 'success',
+      message : "Survey berhasil di update",
+      data: uploadBenner,
+      newAccessToken: res.get('New-Access-Token')
+    })
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+      error: error
+    })
+  }
+});
 
 module.exports = router

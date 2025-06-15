@@ -60,7 +60,6 @@ const Profile = () => {
   }, [admin, reset])
 
   const handleEditProfil = () => {
-    console.log("edit")
     setEditProfil(true)
   }
 

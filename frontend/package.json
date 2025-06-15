@@ -24,6 +24,7 @@
     "html2canvas": "^1.4.1",
     "react": "^19.1.0",
     "react-circular-progressbar": "^2.2.0",
+    "react-color": "^2.19.3",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
     "react-hot-toast": "^2.5.2",

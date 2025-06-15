@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    /* Optional: better font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
 @theme {
   --color-biru-tua: #134784;
   --color-biru-gelap: #05004E;

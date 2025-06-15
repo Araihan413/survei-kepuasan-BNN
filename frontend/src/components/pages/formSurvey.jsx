@@ -200,7 +200,7 @@ const FormSurvey = () => {
               </div>
 
               <div className=" w-full md:w-120 h-max bg-white shadow-md rounded-xl relative overflow-hidden  text-center">
-                <h1 className="p-5">{dataSurveyActive?.textInformation ? dataSurveyActive.textInformation : "Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe ducimus sed voluptas, fugiat magnam at molestiae porro culpa perspiciatis aliquid temporibus facere et sunt illo doloremque cupiditate odio assumenda architecto!"}</h1>
+                <h1 className="p-5">{dataSurveyActive?.textInformation ? dataSurveyActive.textInformation : "BNN Kabupaten Sleman sedang melakukan survey terhadap pelayanan guna meningkatkan mutu pelayanan kepada masyarakat, dengan itu kami memohon ketersediaannya untuk mengisi survey berikut."}</h1>
               </div>
             </div>
 

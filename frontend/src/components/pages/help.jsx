@@ -3,12 +3,14 @@ import { FaPhone } from "react-icons/fa6";
 
 
 const Help = () => {
+  const phoneNumber = '6287863556733'; // Ganti dengan nomor tujuan (format: 628...)
+  const message = 'Halo, Bisa minta bantuannya ?'; // Pesan default (opsional)
   const handleToCall = () => {
-    console.log("call to wa")
+    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
   }
   return (
     <>
-      <div className="flex justify-center items-center px-5 py-10">
+      <div className="flex justify-center items-center p-5">
         <div className="bg-white rounded-xl flex flex-col gap-5  w-full p-5">
           <div className="text-start mb-5">
             <h1 className="text-lg font-bold text-gray-700">Bantuan</h1>

@@ -129,7 +129,7 @@ const ManageService = () => {
 
   return (
     <>
-      <section className="py-10 px-5">
+      <section className="p-5">
         <div className="px-5 pt-5 pb-21 flex flex-col gap-5 bg-white rounded-xl relative">
           <div className="text-start mb-5">
             <h1 className="text-lg font-bold text-gray-700">Daftar Layanan</h1>

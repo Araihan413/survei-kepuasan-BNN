@@ -3,17 +3,18 @@ import {
   TableHead, TableRow, Paper
 } from '@mui/material';
 import KebabMenu from '../Elements/KebabMenu';
-// import PopupEditForm from "../Fragments/PopupEdit";
 import PopupDetail from "../Fragments/PopupDetail";
 import { useState, Fragment } from "react";
 import { PopupEditQuestion } from './PopupEdit';
+import { AlertFailed, AlertSuccess } from '../Elements/Alert';
+import urlApi from '../../api/urlApi';
 
-const ManageQuestionTable = ({ data, header, width = "" }) => {
+
+const ManageQuestionTable = ({ data, header, width = "", onSuccessEdit }) => {
   const [showPopupDetail, setShowPopupDetail] = useState(false);
   const [dataDetailQuestion, setDataDetailQuestion] = useState({});
-  const [showEditQuestion, setShowEditQuestion] = useState(false);
-  const [questionIdToEdit, setQuestionIdToEdit] = useState(null);
   const [dataToEdit, setDataToEdit] = useState({});
+  const [showModalEdit, setShowModalEdit] = useState(false);
 
   const layoutDataQuestion = [
     { key: "questionText", label: "Pertanyaan", type: "textArea" },
@@ -44,37 +45,60 @@ const ManageQuestionTable = ({ data, header, width = "" }) => {
 
   const processDataEdit = (data) => {
     const dataEdit = {
-      questionId: data.questionId,           // Required untuk edit
+      questionId: data.questionId,
+      surveyId: data.surveyId,           // Required untuk edit
       question: data.questionText,
       type: data.questionType,            // "text" | "opsi" | "skala"
       required: data.isRequired,
       displayOrder: data.displayOrder,
-      options: [""],  // Untuk type "opsi"
-      scaleOptions: null, // Untuk type "skala"
-      scaleValues: null               // Untuk type "skala"
+      options: [],  // Untuk type "opsi"
     }
-    if (data.questionType === "opsi") {
+    if (data.questionType === "opsi" || data.questionType === "skala") {
       dataEdit.options = data.option
-    } else if (data.questionType === "skala") {
-      dataEdit.scaleOptions = ["Sangat Setuju", "Setuju", "Tidak Setuju", "Sangat Tidak Setuju"]
-      dataEdit.scaleValues = [4, 3, 2, 1]
     }
-    console.log("ini data", dataEdit)
     setDataToEdit(dataEdit);
   }
 
   const handleToPopupEdit = () => {
     setShowPopupDetail(false);
+    setShowModalEdit(true);
   }
 
   const handleEditQuestion = (id, dataQuestion) => {
+    if (dataQuestion.isPersonal) {
+      return AlertFailed({ text: 'Survei ini tidak dapat mengedit pertanyaan!' });
+    }
     processDataEdit(dataQuestion)
-    setQuestionIdToEdit(id);
-    setShowEditQuestion(true);
+    setShowModalEdit(true);
   }
 
-  const handleSubmitEdit = (id) => {
-    setShowEditQuestion(false);
+  const handleDeleteQuestion = (id, dataQuestion) => {
+    if (dataQuestion.isPersonal) {
+      return AlertFailed({ text: 'Pertanyaan ini tidak dapat dihapus!' });
+    }
+    const fetchDeleteQuestion = async (id) => {
+      try {
+        const responses = await fetch(`${urlApi}/question/${id}`, {
+          method: "DELETE",
+        })
+        const dataQuestion = await responses.json()
+        if (!responses.ok) throw new Error(dataQuestion.message || dataQuestion.error);
+        AlertSuccess({ text: 'Pertanyaan berhasil dihapus!' });
+        onSuccessEdit();
+      } catch (error) {
+        AlertFailed({ text: error.message });
+      }
+    }
+    fetchDeleteQuestion(parseInt(id))
+  }
+
+  const handleSubmitEdit = () => {
+    onSuccessEdit();
+  }
+
+  const handleClosePopupEdit = () => {
+    document.activeElement?.blur();
+    setShowModalEdit(false);
   }
 
   return (
@@ -100,35 +124,26 @@ const ManageQuestionTable = ({ data, header, width = "" }) => {
                       <TableCell sx={{ textAlign: 'center' }}>{item.admin.name}</TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
                         <KebabMenu
-                          onDelete={() => { }}
+                          onDelete={() => { handleDeleteQuestion(item.questionId, item) }}
                           onEdit={() => handleEditQuestion(item.questionId, item)}
                           onDetail={() => handleOpenPopupDetail(item.questionId)}
                         />
                       </TableCell>
                     </TableRow>
-
-                    {showEditQuestion && questionIdToEdit === item.questionId && (
-                      <TableRow>
-                        <TableCell colSpan={5}>
-                          <div className=" ">
-                            <PopupEditQuestion
-                              surveyId={item.surveyId}
-                              initialQuestion={dataToEdit}
-                              handleClose={() => {
-                                setShowEditQuestion(false);
-                                setQuestionIdToEdit(null);
-                              }}
-                              onSuccessSubmit={() => handleSubmitEdit(item.surveyId)}
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
                   </Fragment>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+
+          <div className=" ">
+            <PopupEditQuestion
+              open={showModalEdit}
+              onClose={handleClosePopupEdit}
+              initialQuestion={dataToEdit}
+              onSuccessSubmit={() => handleSubmitEdit()}
+            />
+          </div>
           <div>
             {/* ? popup */}
             <PopupDetail

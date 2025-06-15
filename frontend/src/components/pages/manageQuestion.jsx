@@ -1,9 +1,10 @@
 import ManageQuestionTable from "../Fragments/ManageQeustionTable"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import urlApi from "../../api/urlApi"
 import { FaCirclePlus } from "react-icons/fa6";
 import { PopupCreateQuestion } from "../Fragments/PopupAdd";
 import { AlertFailed } from "../Elements/Alert";
+
 
 const header = ["Id", "Tipe Pertanyaan", "Pertanyaan", "Admin", '']
 
@@ -14,17 +15,7 @@ const ManageQuestion = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPopupAddQuestion, setShowAddQuestion] = useState(false);
-  const targetScrollRef = useRef(null);
 
-  const handleScroll = () => {
-    targetScrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    if (showPopupAddQuestion && targetScrollRef.current) {
-      targetScrollRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [showPopupAddQuestion]);
 
   const fetchDataSurvey = async () => {
     try {
@@ -71,7 +62,6 @@ const ManageQuestion = () => {
     if (dataQuestion.isPersonal) {
       return AlertFailed({ text: 'Survei ini tidak dapat menambah pertanyaan!' });
     }
-    handleScroll();
     setShowAddQuestion(true);
   }
 
@@ -79,9 +69,13 @@ const ManageQuestion = () => {
     setShowAddQuestion(false);
     fetchDataQuestion(surveySelected);
   }
+
+  const onSuccessEditQuestion = (id) => {
+    fetchDataQuestion(surveySelected);
+  }
   return (
     <>
-      <section className="py-10 px-5 relative">
+      <section className="p-5 relative">
         <div className="bg-white rounded-xl shadow-md px-5 pt-5 pb-21">
           <div className="text-start">
             <h1 className="text-lg font-bold text-gray-700">Daftar Pertanyaan</h1>
@@ -99,22 +93,21 @@ const ManageQuestion = () => {
               <div className="w-max flex flex-col justify-center items-center">
                 {dataQuestion ? (
                   <div>
-                    <ManageQuestionTable width="w-[870px]" header={header} data={dataQuestion.question} />
+                    <ManageQuestionTable width="w-[870px]" header={header} data={dataQuestion.question} onSuccessEdit={onSuccessEditQuestion} />
                   </div>
                 ) : (
                   <p className="text-sm font-semibold text-biru-muda/70">Loading...</p>
                 )}
               </div>
-              {showPopupAddQuestion && (
-                <div ref={targetScrollRef} className="bg-slate-200 flex w-full rounded-xl">
-                  <PopupCreateQuestion
-                    surveyId={surveySelected}
-                    lengthQuestion={dataQuestion?.question?.length}
-                    handleClose={() => setShowAddQuestion(false)}
-                    onSuccessSumbit={onSuccessAddQuestion}
-                  />
-                </div>
-              )}
+              <div className="">
+                <PopupCreateQuestion
+                  open={showPopupAddQuestion}
+                  surveyId={surveySelected}
+                  lengthQuestion={dataQuestion?.question?.length}
+                  handleClose={() => setShowAddQuestion(false)}
+                  onSuccessSumbit={onSuccessAddQuestion}
+                />
+              </div>
             </div>
 
           </div>

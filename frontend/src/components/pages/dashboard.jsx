@@ -89,10 +89,11 @@ const Dashborad = () => {
       }
       const data = dataAvgScore.data.map(item => ({
         id: item.survey_id,
-        avgValue: item.averageScore,
+        avgValue: item.averageScore ?? 0,
         maxValue: 5,
-        nameSurvey: item.title
+        nameSurvey: item.title ?? "-"
       }))
+      console.log(data)
       setDataDiagramAvg(data)
     } catch (error) {
       setError(error.message);
@@ -239,10 +240,19 @@ const Dashborad = () => {
             <div className="absolute top-20 right-5">
               <DropdownFilter value={avgFilter} options={optionValue} onChange={handleChangePeriod}></DropdownFilter>
             </div>
-            <div className="flex justify-center p-5">
-              {dataDiagramAvg.map((item, index) => (
-                <CircleProgressbar key={index} dataSurvey={item} width={'max-w-[200px]'} sizeFont='text-sm' hiddenDownload={true} hiddenColor={true}></CircleProgressbar>
-              ))}
+            <div className="flex justify-center gap-2 p-5">
+              {dataDiagramAvg.length > 0 ? (
+                dataDiagramAvg.map((item, index) => (
+                  <CircleProgressbar key={index} dataSurvey={item} width={'max-w-[200px]'} sizeFont='text-sm' hiddenDownload={true} hiddenColor={true}>
+                  </CircleProgressbar>
+                ))
+              )
+                : (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-700">Tidak ada data</p>
+                  </div>
+                )
+              }
             </div>
           </div>
           <div className="bg-white py-5 px-2 h-max rounded-xl relative shadow-lg col-span-1">
@@ -264,7 +274,7 @@ const Dashborad = () => {
           </div>
         </section>
         <section className="flex w-full">
-          <div className="bg-white p-5 rounded-xl shadow-lg">
+          <div className="bg-white p-5 rounded-xl shadow-lg w-full">
             <div className="flex justify-between">
               <div>
                 <h1 className="text-xl font-bold text-gray-700">Pengisian Survei</h1>
@@ -276,7 +286,7 @@ const Dashborad = () => {
                 </div>
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto ">
               <PaginatedTable header={headerTable} data={dataTable} ></PaginatedTable>
             </div>
           </div>

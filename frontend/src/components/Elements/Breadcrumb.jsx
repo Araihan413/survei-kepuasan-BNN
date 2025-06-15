@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-
+import { IoIosArrowForward } from "react-icons/io";
 const Breadcrumb = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
@@ -13,7 +13,7 @@ const Breadcrumb = () => {
 
           return (
             <li key={to} className="flex items-center">
-              {index > 0 && <span className="mx-2">/</span>}
+              {index > 0 && <span className="mx-2"><IoIosArrowForward className="-mb-0.5 text-2xl" /></span>}
               {isLast ? (
                 <span className="text-gray-700 capitalize">{decodeURIComponent(value)}</span>
               ) : (

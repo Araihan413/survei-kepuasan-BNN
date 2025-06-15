@@ -1,4 +1,5 @@
 const questionRepository = require('./question.repository')
+const optionRepository = require('../option/option.repository')
 
 
 const getQuestionById = async (id) => {
@@ -96,8 +97,53 @@ const updateQuestionById = async (id, questionData) => {
   if (typeof questionData.displayOrder === 'number') {
     dataUpdate.displayOrder = questionData.displayOrder
   }
-  const question = await questionRepository.updateQuestionById(id, dataUpdate)
-  return question
+  const updatedQuestion = await questionRepository.updateQuestionById(id, dataUpdate)
+  return updatedQuestion
+}
+
+const updateQuestionAndOption = async (questionData, optionChanges) => {
+  await getQuestionById(parseInt(questionData.questionId))
+
+  const dataUpdate = {}
+
+  if (typeof questionData.questionText === 'string') {
+    dataUpdate.questionText = questionData.questionText
+  }
+  if (typeof questionData.questionType === 'string') {
+    dataUpdate.questionType = questionData.questionType
+  }
+  if (typeof questionData.isRequired === 'boolean') {
+    dataUpdate.isRequired = questionData.isRequired
+  }
+  if (typeof questionData.isActive === 'boolean') {
+     dataUpdate.isActive = questionData.isActive
+   }
+  if (typeof questionData.displayOrder === 'number') {
+    dataUpdate.displayOrder = questionData.displayOrder
+  }
+  const updatedQuestion = await questionRepository.updateQuestionById(parseInt(questionData.questionId), dataUpdate)
+
+   // 2. Hapus Opsi yang Dihapus User
+   if (optionChanges.toDelete.length > 0) {
+    await optionRepository.deleteManyOption(optionChanges);
+  }
+
+  // 3. Update Opsi yang Diubah
+  const updatePromises = optionChanges.toUpdate.map(opt =>
+    optionRepository.updateOptionById(opt.optionId, {
+      optionText: opt.optionText,
+      scaleValue: opt.scaleValue || null,
+      displayOrder: opt.displayOrder
+    })
+  );
+  await Promise.all(updatePromises);
+
+  // 4. Tambah Opsi Baru
+  if (optionChanges.toCreate.length > 0) {
+    await optionRepository.insertManyOption(optionChanges.toCreate);
+  }
+
+  return updatedQuestion
 }
 
 const deleteQuestionById = async (id) => {
@@ -113,5 +159,6 @@ module.exports = {
   updateQuestionById,
   deleteQuestionById,
   getAllQuestion,
-  getQuestionByNameField 
+  getQuestionByNameField,
+  updateQuestionAndOption
 }

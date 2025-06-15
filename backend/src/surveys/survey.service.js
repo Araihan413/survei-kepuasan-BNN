@@ -1,4 +1,6 @@
 const surveyRepository = require('./survey.repository')
+const path = require('path');
+const fs = require('fs');
 
 const getAllQuestionInSurvey = async () => {
   const survey = await surveyRepository.findQuestionsInSurvey()
@@ -65,6 +67,69 @@ const deleteSurveyById = async (id) => {
   return survey
 }
 
+const uploadBannerSurvey = async (surveyId,  textInformation, file) => {
+  let newFilePath = null; // Simpan path file baru untuk cleanup jika gagal
+
+  try {
+    // Validasi input
+    if (!surveyId) {
+      throw new Error('Survey ID is required');
+    }
+
+    const updateData = {
+      textInformation: textInformation || null,
+    };
+
+    if (file) {
+      // Validasi file
+      if (!file.mimetype.startsWith('image/')) {
+        throw new Error('Only image files are allowed');
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB');
+      }
+
+      // Hapus banner lama
+      const survey = await getDetailSurveyById(surveyId);
+      
+      if (survey.bannerUrl) {
+        const oldPath = path.join(__dirname, '../public', survey.bannerUrl);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+      
+      // Simpan path baru untuk cleanup
+      newFilePath = path.join(__dirname, '../public', `/uploads/${file.filename}`);
+      updateData.bannerUrl = `/uploads/${file.filename}`;
+    }
+
+    const updatedSurvey = await surveyRepository.updateSurveyById(surveyId, updateData);
+    
+    // Jika update gagal (misal karena constraint database)
+    if (!updatedSurvey) {
+      throw new Error('Failed to update survey in database');
+    }
+
+    return updatedSurvey;
+    
+  } catch (error) {
+    console.error('Error in uploadBannerSurvey:', error);
+    
+    // Cleanup file baru jika sudah diupload tapi operasi gagal
+    if (newFilePath && fs.existsSync(newFilePath)) {
+      try {
+        fs.unlinkSync(newFilePath);
+        console.log('Cleanup: Deleted uploaded file due to operation failure');
+      } catch (cleanupError) {
+        console.error('Failed to cleanup file:', cleanupError);
+      }
+    }
+    
+    throw error; // Re-throw error untuk ditangkap oleh route handler
+  }
+};
+
 module.exports = { 
   getAllQuestionInSurvey,
   getAllSurvey,
@@ -72,5 +137,6 @@ module.exports = {
   insertSurvey,
   updateDataSurveyById,
   deleteSurveyById,
-  getSurveyIncludeQuestion
+  getSurveyIncludeQuestion,
+  uploadBannerSurvey
 }

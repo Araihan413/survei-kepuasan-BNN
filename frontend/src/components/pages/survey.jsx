@@ -14,6 +14,7 @@ import { FaCirclePlus } from "react-icons/fa6";
 import { PopupCreateSurvey } from "../Fragments/PopupAdd";
 import { AlertSuccess, AlertFailed } from "../Elements/Alert";
 import { useNavigate } from "react-router-dom";
+import CopyLinkButton from "../Elements/CopyLinkButton";
 
 const layoutDataSurvey = [
   { key: "title", label: "Nama", type: "text", accessEdit: true, validation: { required: 'Nama produk wajib diisi' } },
@@ -187,12 +188,12 @@ const Survey = () => {
   };
 
   return (
-    <section className="py-10 px-5">
+    <section className="p-5">
       <div className="bg-white rounded-xl shadow-md px-5 pt-5 pb-20">
         <div className="flex justify-between">
           <h1 className="text-lg font-bold text-gray-700">Survei Yang Terdaftar di BNN Sleman</h1>
           <div className="flex w-max text-sm gap-4">
-            <ButtonDownload icon={<IoLink className="text-lg" />} text="Salin Link" onClick={() => { }} />
+            <CopyLinkButton text="Salin Link" />
             <Button icon={<RiSurveyLine className="text-xl text-biru-muda" />} text="Kelola Pertanyaan" color="bg-white" style="border-1 border-biru-muda/80 active:bg-slate-100 text-biru-muda text-xs" onClick={handleOpen} />
           </div>
         </div>

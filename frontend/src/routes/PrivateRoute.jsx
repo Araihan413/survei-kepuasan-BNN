@@ -3,9 +3,10 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { AuthContext } from "../AuthContext";
 
 export const PrivateRoute = ({ allowedRoles }) => {
+  const adminLocal = localStorage.getItem("admin");
 
   const { admin } = useContext(AuthContext);
-  if (!admin) {
+  if (!admin && !adminLocal) {
     return <Navigate to="/login" />
   }
 
