@@ -16,11 +16,13 @@ const optionController = require('./option/option.controller')
 const serviceController = require('./service/service.controller')
 const answerController = require('./answer/answer.controller')
 const notifController = require('./notification/notif.controller')
+const themeFormController = require('./ThemeForm/theme.controller')
 
 const app = express();
 const dotenv = require('dotenv')
 // http://localhost:2100/images/default-avatar.png //? contoh request image profile
 app.use(express.static(path.join(__dirname, 'public')));
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -38,7 +40,11 @@ io.on('connection', (socket) => {
   // Contoh jika ada survei baru
   socket.on('send-new-survey', (data) => {
     // broadcast ke semua client
-    io.emit('new-survey', data);
+    io.emit('new-survey', {
+      type: 'new-response',
+      data: data
+    });
+    console.log("data baru websocket")
   });
 
   socket.on('disconnect', () => {
@@ -64,6 +70,7 @@ app.use('/api/option', optionController)
 app.use('/api/service', serviceController)
 app.use('/api/answer', answerController)
 app.use('/api/notification', notifController)
+app.use('/api/themeForm' , themeFormController)
 
 
 app.get('/', (req, res) => {

@@ -1,6 +1,8 @@
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import toast from 'react-hot-toast';
+import { FaUserCircle } from 'react-icons/fa';
+import { IoClose } from 'react-icons/io5'; // Icon close
 
 const MySwal = withReactContent(Swal);
 
@@ -48,9 +50,39 @@ const AlertSuccess = ({ text }) => toast.success(text);
 
 const AlertFailed = ({ text }) => toast.error(text);
 
-const AlertNewSurvey = ({ name }) => toast.success(`Survei baru masuk dari ${name}`, {
-  duration: 5000,
-  position: "top-right"
-});
+const AlertNewSurvey = ({ respondentName, date }) => {
+  toast((t) => (
+    <div className="flex items-center justify-between gap-3 p-4 pr-0 w-full">
+      <div className="flex items-center gap-3 border-r-1 border-gray-500 pr-4">
+        <FaUserCircle className="text-4xl text-white bg-blue-500 rounded-full p-1" />
+        <div>
+          <p className="font-semibold text-black">Survei Baru Diterima!</p>
+          <p className="text-black text-sm">Dari : {respondentName}</p>
+          <p className="text-xs text-gray-500">
+            {new Date(date).toLocaleString()}
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={() => toast.dismiss(t.id)}
+        className="text-gray-700 hover:text-black rounded-full pl-1 pr-2 cursor-pointer"
+      >
+        <IoClose className="text-lg" />
+      </button>
+    </div>
+  ), {
+    duration: 7000,
+    position: 'top-center',
+    icon: null,
+    style: {
+      background: '#fff',
+      borderRadius: '10px',
+      padding: '0px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      color: '#000',
+      maxWidth: '400px'
+    }
+  });
+};
 
 export { AlertDelete, AlertSuccess, AlertFailed, AlertNewSurvey, AlertComfirm };

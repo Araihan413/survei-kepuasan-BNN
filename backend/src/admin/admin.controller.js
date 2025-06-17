@@ -85,7 +85,7 @@ router.get('/:id',  async (req, res) => {
   }
 })
 
-router.post('/tambah-admin', verifyToken,requireRole('admin super'), async (req, res) => {
+router.post('/tambah-admin', verifyToken,requireRole('admin'), async (req, res) => {
   try {
     const dataAdmin = req.body;
     const admin = await  adminService.createAdmin(dataAdmin)

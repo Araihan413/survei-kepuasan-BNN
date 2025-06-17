@@ -20,18 +20,21 @@ const FormSurvey = () => {
   const [error, setError] = useState(null);
   const [dataSurveyActive, setDataSurveyActive] = useState(null);
   const [submitSurvey, setSubmitSurvey] = useState(false);
+  const [bgColor, setBgColor] = useState('#c5eeff')
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [res1, res2, res3] = await Promise.all([
+        const [res1, res2, res3, themeColor] = await Promise.all([
           fetch(`${urlApi}/survey`),
           fetch(`${urlApi}/service`),
-          fetch(`${urlApi}/question`)
+          fetch(`${urlApi}/question`),
+          fetch(`${urlApi}/themeForm`)
         ]);
         const surveys = await res1.json();
         const services = await res2.json();
         const questions = await res3.json();
+        const theme = await themeColor.json();
         if (surveys.error || services.error || questions.error) {
           throw new Error(surveys.error || services.error || questions.error);
         }
@@ -43,6 +46,8 @@ const FormSurvey = () => {
         }
         setListService(services.data);
 
+        const colorTheme = theme.data[0].colorTheme
+        setBgColor(colorTheme)
         const questionActive = questions.data.filter(question => question.isActive === true);
         setAllQuestion(questionActive);
         setLoading(false);
@@ -159,9 +164,13 @@ const FormSurvey = () => {
             notifType: "survei",
           })
           setSubmitSurvey(true);
+
+          // ✅ Emit WebSocket setelah berhasil
+          socket.emit("send-new-survey", {
+            name: dataForm.biodata.name,
+            timestamp: new Date().toISOString()
+          }); // atau `data` jika mau kirim data dari backend
         }
-        // ✅ Emit WebSocket setelah berhasil
-        socket.emit("send-new-survey", dataForm); // atau `data` jika mau kirim data dari backend
 
         setLoadingSubmit(false);
         localStorage.removeItem("survey-answers");
@@ -174,12 +183,13 @@ const FormSurvey = () => {
     postData();
   };
 
+
   if (loading) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-2xl text-sky-400">Loading...</p></div>;
   if (error) return <div className="h-screen w-sreen flex justify-center items-center"><p className="text-lg text-red-400">Error: {error}</p></div>;
 
   return (
     <>
-      <section className="bg-sky-100 w-full min-h-screen h-max relative pb-10">
+      <section style={{ backgroundColor: bgColor }} className="w-full min-h-screen h-max relative pb-10">
         {submitSurvey ? (
           <div className="py-5 flex flex-col gap-10 justify-center items-center">
             <div className="flex flex-col items-center gap-3 w-full px-5">

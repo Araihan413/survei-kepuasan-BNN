@@ -2,10 +2,12 @@ import { FaRegBell } from "react-icons/fa6";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { useNavigate } from "react-router-dom"
 import { AuthContext } from "../../AuthContext";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import Breadcrumb from "../Elements/Breadcrumb";
+import urlApi from "../../api/urlApi";
 
-const NavbarTop = ({ logo = false }) => {
+const NavbarTop = ({ logo = false, notificationCount }) => {
+  const [countNotifNew, setCountNotifNew] = useState(0)
   const { admin } = useContext(AuthContext);
   const navigasi = useNavigate();
   const handleToProfil = () => {
@@ -15,6 +17,26 @@ const NavbarTop = ({ logo = false }) => {
   const handleToNotification = () => {
     navigasi("/notifikasi");
   }
+
+  const fetchData = async () => {
+    try {
+      const responses = await fetch(`${urlApi}/notification`)
+      const dataNotif = await responses.json()
+      if (!responses.ok) throw new Error(dataNotif.message || dataNotif.error)
+      const notifNew = dataNotif.data.filter(notif => notif.isOpened === false)
+      setCountNotifNew(notifNew.length)
+    } catch (error) {
+      console.log(error.message)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [notificationCount])
 
   const cutTeks = (teks, maxLength = 15) => {
     if (!teks) return "";
@@ -35,8 +57,13 @@ const NavbarTop = ({ logo = false }) => {
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <button onClick={handleToNotification} className="text-[#dfb400] text-xl bg-[#fff8da]/50 p-2 rounded-md cursor-pointer">
+          <button onClick={handleToNotification} className="text-[#dfb400] text-xl bg-[#fff8da]/50 p-2 rounded-md cursor-pointer relative">
             <FaRegBell />
+            {(countNotifNew > 0) && (
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                {countNotifNew}
+              </span>
+            )}
           </button>
           <div className="flex items-center gap-3 cursor-pointer" onClick={handleToProfil}>
             <div className="w-10 h-10 rounded-xl ">

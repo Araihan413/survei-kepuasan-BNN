@@ -89,17 +89,8 @@ function App() {
             },
             {
               path: '/notifikasi',
-              element: <Notification allowedRoles={['admin super']}></Notification>
+              element: <Notification allowedRoles={['admin']}></Notification>
             },
-            // {
-            //   element: <PrivateRoute></PrivateRoute>,
-            //   children: [
-            //     {
-            //       path: '/kelola-akun',
-            //       element: <Profile></Profile>
-            //     }
-            //   ]
-            // }
           ]
         }
       ]

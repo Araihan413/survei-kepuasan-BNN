@@ -34,8 +34,8 @@ const authLogin = async (username, password) => {
 const authRegister = async (dataAdmin) => {
   const { name, username, password, confirmPassword, email} = dataAdmin 
   const allAdmin = await admin.findAdmin()
-  if (allAdmin.find(admin => toLowerCase(admin.role) === 'admin super')) throw new Error('Admin super sudah terdaftar')
-  const role = 'admin super'
+  if (allAdmin.find(admin => toLowerCase(admin.role) === 'admin')) throw new Error('Admin sudah terdaftar')
+  const role = 'admin'
   const adminByUsername = await admin.findAdminByUsername(username)
   if (adminByUsername) throw new Error('username sudah terdaftar')
   const adminByEmail = await admin.findAdminByEmail(email)

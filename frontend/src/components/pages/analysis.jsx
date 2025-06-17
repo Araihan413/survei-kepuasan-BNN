@@ -1,5 +1,5 @@
 import DropdownFilter from "../Elements/DropdownFilter"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import CircleProgressbar from "../Elements/CircleProgressbar"
 import PieChart from "../Elements/PieChart"
 import ButtonDownload from "../Elements/ButtonDownload"
@@ -11,7 +11,7 @@ import BarChartHorizontal from "../Elements/BarChartHorizontal"
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import urlApi from "../../api/urlApi"
-import socket from "../../socket";
+import { useOutletContext } from 'react-router-dom';
 
 const Analysis = () => {
   const chartRefs = useRef({
@@ -39,6 +39,9 @@ const Analysis = () => {
   const [dataTableRanking, setDataTableRanking] = useState({});
   const [dataQuestionTableText, setDataQuestionTableText] = useState({});
   const [dataQuestionOpsi, setDataQuestionOpsi] = useState([]);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+
+  const { socket } = useOutletContext();
 
   const headerPertanyaanText = () => {
     const header = ['No.']
@@ -273,22 +276,6 @@ const Analysis = () => {
     }
   };
 
-  const handleNewSurvey = async (data) => {
-    if (!surveyActive) return;
-    const fetchOnChange = async () => {
-      setLoading(true);
-      try {
-        await analysisSurvey(surveyActive, selectedFilter);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOnChange();
-  };
-
   // 🔹 Fetch pertama kali saat komponen mount
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -308,12 +295,6 @@ const Analysis = () => {
     };
 
     fetchInitialData();
-    // ? socket
-    socket.on("new-survey", handleNewSurvey);
-
-    return () => {
-      socket.off("new-survey", handleNewSurvey);
-    };
   }, []);
 
   // 🔹 Update data saat `surveyActive` atau `selectedFilter` berubah
@@ -333,6 +314,43 @@ const Analysis = () => {
     fetchOnChange();
   }, [surveyActive, selectedFilter]);
 
+  const refreshAnalisisData = useCallback(async () => {
+    if (!surveyActive) return;
+    try {
+      await Promise.all([
+        analysisSurvey(surveyActive, selectedFilter)
+      ]);
+    } catch (error) {
+      console.error("Failed to refresh data:", error);
+      AlertFailed({ text: "Gagal memuat data terbaru" });
+    } finally {
+    }
+  }, [socket]);
+
+  useEffect(() => {
+    const onConnect = () => {
+      setIsSocketConnected(true);
+      socket.emit('register-admin');
+    };
+
+    const onNewSurvey = (data) => {
+      refreshAnalisisData();
+    };
+
+    // Connect handlers
+    socket.on('connect', onConnect);
+    socket.on('new-survey', onNewSurvey);
+
+    // Initialize connection
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('new-survey', onNewSurvey);
+    };
+  }, [refreshAnalisisData]);
   // ? unduh data ke dalam excel
   // ? data yang masuk harus berupa array of objects
   const exportExcel = (data, fileName, headers) => {
@@ -411,7 +429,7 @@ const Analysis = () => {
           </div>
 
           <div className="mt-20 flex justify-center">
-            <CircleProgressbar dataSurvey={dataDiagramAvg} width={'max-w-[270px]'} sizeFont='text-xl'></CircleProgressbar>
+            <CircleProgressbar dataSurvey={dataDiagramAvg} width={'max-w-[250px]'} sizeFont='text-xl'></CircleProgressbar>
           </div>
 
           <div className="flex flex-wrap justify-center gap-10 items-center mt-10">

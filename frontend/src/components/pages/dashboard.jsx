@@ -1,13 +1,14 @@
 import CircleProgressbar from "../Elements/CircleProgressbar"
 import DropdownFilter from "../Elements/DropdownFilter"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import LineChart from "../Elements/LineChart"
 import PaginatedTable from "../Fragments/PaginatedTable"
 import { MdFilterAlt } from "react-icons/md";
 import urlApi from "../../api/urlApi"
 import Button from "../Elements/Button"
 import PopupFilterRespondent from "../Fragments/PopupFilterRespondent"
-import socket from "../../socket";
+import { AlertFailed } from "../Elements/Alert"
+import { useOutletContext } from 'react-router-dom';
 
 const Dashborad = () => {
 
@@ -34,6 +35,24 @@ const Dashborad = () => {
   const [loading, setLoading] = useState(false)
   const [listService, setListService] = useState([])
   const [showPopup, setShowPopup] = useState(false)
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+
+  const { socket } = useOutletContext();
+
+  const refreshDashboardData = useCallback(async () => {
+    console.log("Refreshing dashboard data...");
+    try {
+      await Promise.all([
+        recentRespondents(filterRespondent),
+        avgScore(),
+        countRespondent(countRespondentFilter),
+      ]);
+    } catch (error) {
+      console.error("Failed to refresh data:", error);
+      AlertFailed({ text: "Gagal memuat data terbaru" });
+    } finally {
+    }
+  }, [socket]);
 
   const recentRespondents = async (filter) => {
     try {
@@ -93,7 +112,6 @@ const Dashborad = () => {
         maxValue: 5,
         nameSurvey: item.title ?? "-"
       }))
-      console.log(data)
       setDataDiagramAvg(data)
     } catch (error) {
       setError(error.message);
@@ -141,33 +159,20 @@ const Dashborad = () => {
   useEffect(() => {
 
     const fetchData = async () => {
-      setLoading(true)
-
       await Promise.all([
         recentRespondents(filterRespondent),
         avgScore(),
         countRespondent(countRespondentFilter)
       ])
-
-      setLoading(false)
     }
 
     fetchData()
   }, [filterRespondent, avgFilter, countRespondentFilter])
 
-  const handleNewSurvey = async (data) => {
-    setLoading(true);
-    await Promise.all([
-      recentRespondents(filterRespondent),
-      avgScore(),
-      countRespondent(countRespondentFilter),
-    ]);
-    setLoading(false);
-  };
-
   useEffect(() => {
     const fetchDataSevice = async () => {
       try {
+        setLoading(true)
         const response = await fetch(`${urlApi}/service`)
         const dataServices = await response.json()
         if (!response.ok) {
@@ -176,19 +181,44 @@ const Dashborad = () => {
         const service = dataServices.data.map(item => ({ value: item.serviceId, label: item.label }))
         const optionService = [{ value: "", label: 'Semua Layanan' }, ...service]
         setListService(optionService)
+
       } catch (error) {
         setError(error.message);
+      } finally {
+
+        setLoading(false)
       }
     }
     fetchDataSevice()
 
-    // ? socket
-    socket.on("new-survey", handleNewSurvey);
+  }, [])
+
+  // Setup WebSocket listeners
+  useEffect(() => {
+    const onConnect = () => {
+      console.log("WebSocket connected");
+      setIsSocketConnected(true);
+      socket.emit('register-admin');
+    };
+
+    const onNewSurvey = (data) => {
+      refreshDashboardData();
+    };
+
+    // Connect handlers
+    socket.on('connect', onConnect);
+    socket.on('new-survey', onNewSurvey);
+
+    // Initialize connection
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     return () => {
-      socket.off("new-survey", handleNewSurvey);
+      socket.off('connect', onConnect);
+      socket.off('new-survey', onNewSurvey);
     };
-  }, [])
+  }, [refreshDashboardData]);
 
   // ? option untuk filter periode
   const optionValue = [
@@ -208,6 +238,7 @@ const Dashborad = () => {
     setAvgFilter(event.target.value);
     setFilterRespondent(prev => ({ ...prev, dateAgo: event.target.value }));
   }
+
   const handleChangeYear = (event) => {
     return setCountRespondentFilter(prev => ({ ...prev, year: event.target.value }));
   }
@@ -227,6 +258,7 @@ const Dashborad = () => {
     setShowPopup(false);
   };
 
+  if (loading) return <div className="h-full w-full flex justify-center items-center text-biru-muda">Loading data dashboard...</div>;
 
   return (
     <>

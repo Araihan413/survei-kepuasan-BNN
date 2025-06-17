@@ -19,6 +19,7 @@ const ManageFormSurvey = () => {
     error: null,
     pageActive: 1,
     bgColor: '#c5eeff',
+    changeColorTheme: false,
     openPopupListQuestion: false,
     bannerFile: null
   });
@@ -39,18 +40,20 @@ const ManageFormSurvey = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [surveysRes, servicesRes] = await Promise.all([
+        const [surveysRes, servicesRes, themeFormRes] = await Promise.all([
           fetch(`${urlApi}/survey`),
-          fetch(`${urlApi}/service`)
+          fetch(`${urlApi}/service`),
+          fetch(`${urlApi}/themeForm`)
         ]);
 
-        const [surveys, services] = await Promise.all([
+        const [surveys, services, theme] = await Promise.all([
           surveysRes.json(),
-          servicesRes.json()
+          servicesRes.json(),
+          themeFormRes.json()
         ]);
 
-        if (!surveysRes.ok || !servicesRes.ok) {
-          throw new Error(surveys.error || services.error);
+        if (!surveysRes.ok || !servicesRes.ok || !themeFormRes.ok) {
+          throw new Error(surveys.error || services.error || theme.error);
         }
 
         const publishedSurveys = surveys.data.filter(item => item.isPublished);
@@ -66,7 +69,8 @@ const ManageFormSurvey = () => {
           await fetchQuestions(publishedSurveys[0].surveyId);
         }
 
-        setState(prev => ({ ...prev, loading: false }));
+        const colorTheme = theme.data[0].colorTheme
+        setState(prev => ({ ...prev, loading: false, bgColor: colorTheme }));
       } catch (err) {
         setState(prev => ({ ...prev, error: err.message, loading: false }));
       }
@@ -128,6 +132,22 @@ const ManageFormSurvey = () => {
     }
   };
 
+  const updateColorTheme = async (dataTheme) => {
+    try {
+      const theme = await fetch(`${urlApi}/themeForm/1`, {
+        method: 'PATCH',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataTheme)
+      })
+      const colorTheme = await theme.json();
+      if (!theme.ok) throw new Error(colorTheme.message || colorTheme.error);
+      setState(prev => ({ ...prev, changeColorTheme: true }))
+      return colorTheme
+    } catch (error) {
+      AlertFailed({ text: error.message });
+    }
+  }
+
   // Handle save survey
   const handleSaveAllSurvey = async () => {
     if (!activeSurvey) return;
@@ -173,6 +193,11 @@ const ManageFormSurvey = () => {
           textInformation: responseData.data.textInformation || prev.activeSurvey.textInformation
         }
       }));
+
+      // ? jika theme nya berubah
+      if (state.changeColorTheme) {
+        updateColorTheme({ colorTheme: state.bgColor })
+      }
 
       setState(prev => ({ ...prev, bannerFile: null }));
       AlertSuccess({ text: 'Perubahan berhasil disimpan' });
@@ -226,7 +251,7 @@ const ManageFormSurvey = () => {
   );
 
   return (
-    <section style={{ backgroundColor: state.bgColor }} className="w-full min-h-screen h-max relative pb-10">
+    <section style={{ backgroundColor: state?.bgColor }} className="w-full min-h-screen h-max relative pb-10">
       {/* Navigation bar */}
       <div className="fixed mt-16 top-0 left-0 right-0 z-50">
         <NavbarTop logo={true} />
@@ -234,7 +259,7 @@ const ManageFormSurvey = () => {
           <div className="flex gap-8">
             <ColorPicker
               bgColor={state.bgColor}
-              handleChangeTheme={(color) => setState(prev => ({ ...prev, bgColor: color }))}
+              handleChangeTheme={(color) => setState(prev => ({ ...prev, bgColor: color, changeColorTheme: true }))}
             />
             <button className="cursor-pointer" onClick={handleToSurvey}>
               <IoEye className="text-2xl text-gray-700 hover:text-biru-muda" />

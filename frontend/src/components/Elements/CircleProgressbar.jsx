@@ -72,7 +72,7 @@ const CircleProgressbar = (props) => {
 
   return (
     <div className="flex flex-col relative w-max">
-      <div className="flex justify-end absolute top-0 -right-28 gap-3">
+      <div className="flex justify-end absolute -top-6 -right-28 gap-3">
         {!hiddenColor && (
           <DropdownColor
             value={selectedOption}
