@@ -1,5 +1,4 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "../Fragments/Navbar";
 import NavbarTop from "../Fragments/NavbarTop";
 import socket from "../../socket";
 import { useEffect } from "react";
@@ -19,7 +18,6 @@ const Layout = () => {
       if (dataRespondent) {
         AlertNewSurvey({ respondentName: respondentName, date: date })
         const newNotif = {
-          notifId: dataRespondent.data.notifId,
           notifText: `${respondentName} telah mengisi survei.`,
           isOpened: false,
         };
@@ -48,9 +46,8 @@ const Layout = () => {
   return (
     <>
       <div className="bg-slate-100 min-h-screen flex relative box-border">
-        <NavbarTop notificationCount={notifications.unreadNotifications} />
-        <Navbar />
-        <main className="w-full mt-16 ml-53.5">
+        <NavbarTop logo={true} notificationCount={notifications.unreadNotifications} />
+        <main className="w-full">
           <Outlet context={{ socket }} />
         </main>
       </div>

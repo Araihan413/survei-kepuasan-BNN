@@ -159,14 +159,15 @@ const FormSurvey = () => {
         if (!response.ok) throw new Error(data.message || data.error);
 
         if (response.ok) {
-          createNotification({
-            notifText: `${dataForm.biodata.name} telah Mengisi Survei`,
+          const notif = await createNotification({
+            notifText: `${dataForm.biodata.name.lowerCase()} telah mengisi survei.`,
             notifType: "survei",
           })
           setSubmitSurvey(true);
 
           // ✅ Emit WebSocket setelah berhasil
           socket.emit("send-new-survey", {
+            notifId: notif.notifId,
             name: dataForm.biodata.name,
             timestamp: new Date().toISOString()
           }); // atau `data` jika mau kirim data dari backend

@@ -1,6 +1,4 @@
 import KebabMenu from "../Elements/KebabMenu";
-import ButtonDownload from "../Elements/ButtonDownload";
-import { IoLink } from "react-icons/io5";
 import PopupEdit from "../Fragments/PopupEdit";
 import { useState, useEffect } from "react";
 import { RiSurveyLine } from "react-icons/ri";
@@ -15,6 +13,7 @@ import { PopupCreateSurvey } from "../Fragments/PopupAdd";
 import { AlertSuccess, AlertFailed } from "../Elements/Alert";
 import { useNavigate } from "react-router-dom";
 import CopyLinkButton from "../Elements/CopyLinkButton";
+import { updateAccessToken } from "../utils/UpdateToken";
 
 const layoutDataSurvey = [
   { key: "title", label: "Nama", type: "text", accessEdit: true, validation: { required: 'Nama produk wajib diisi' } },
@@ -99,9 +98,16 @@ const Survey = () => {
       try {
         const response = await fetch(`${urlApi}/survey/${id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
           body: JSON.stringify({ isPublished: !toggles[id] }),
         });
+        // ! update token 
+        const newToken = response.headers.get('New-Access-Token');
+        updateAccessToken(newToken);
+
         const newData = await response.json();
         if (!response.ok) throw new Error(newData.message || newData.error);
         setToggles((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -141,12 +147,16 @@ const Survey = () => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify({
             title: updatedData.title,
             description: updatedData.description,
           }),
         });
+        // ! update token
+        const newToken = response.headers.get('New-Access-Token');
+        updateAccessToken(newToken);
 
         if (!response.ok) {
           throw new Error("Gagal update survey");
@@ -175,7 +185,14 @@ const Survey = () => {
       try {
         const responses = await fetch(`${urlApi}/survey/${id}`, {
           method: "DELETE",
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
         })
+        // ! update token
+        const newToken = responses.headers.get('New-Access-Token');
+        updateAccessToken(newToken);
+
         const dataSurvey = await responses.json()
         if (!responses.ok) throw new Error(dataSurvey.message || dataSurvey.error);
         AlertSuccess({ text: 'Data survei berhasil dihapus!' });

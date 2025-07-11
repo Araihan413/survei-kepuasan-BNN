@@ -11,6 +11,7 @@ import ColorPicker from "../Elements/ColorPicker";
 import EditOnClickBanner from "../Elements/EditOnClickBanner";
 import EditableTextInformation from "../Elements/EditableTextInformation";
 import { AlertFailed, AlertSuccess } from "../Elements/Alert";
+import { updateAccessToken } from "../utils/UpdateToken";
 
 const ManageFormSurvey = () => {
   // State management
@@ -136,12 +137,20 @@ const ManageFormSurvey = () => {
     try {
       const theme = await fetch(`${urlApi}/themeForm/1`, {
         method: 'PATCH',
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
         body: JSON.stringify(dataTheme)
       })
       const colorTheme = await theme.json();
       if (!theme.ok) throw new Error(colorTheme.message || colorTheme.error);
       setState(prev => ({ ...prev, changeColorTheme: true }))
+
+      // ! Handle new token if exists
+      const newToken = theme.headers.get('New-Access-Token');
+      updateAccessToken(newToken);
+
       return colorTheme
     } catch (error) {
       AlertFailed({ text: error.message });
@@ -163,9 +172,9 @@ const ManageFormSurvey = () => {
       const response = await fetch(`${urlApi}/survey/update`, {
         method: 'POST',
         body: formData,
-        // headers: {
-        //   'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        // }
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
       });
 
       if (!response.ok) {
@@ -202,11 +211,9 @@ const ManageFormSurvey = () => {
       setState(prev => ({ ...prev, bannerFile: null }));
       AlertSuccess({ text: 'Perubahan berhasil disimpan' });
 
-      // Handle new token if exists
+      // ! Handle new token if exists
       const newToken = response.headers.get('New-Access-Token');
-      if (newToken) {
-        localStorage.setItem('accessToken', newToken);
-      }
+      updateAccessToken(newToken);
 
     } catch (error) {
       console.error('Error:', error);
@@ -254,7 +261,6 @@ const ManageFormSurvey = () => {
     <section style={{ backgroundColor: state?.bgColor }} className="w-full min-h-screen h-max relative pb-10">
       {/* Navigation bar */}
       <div className="fixed mt-16 top-0 left-0 right-0 z-50">
-        <NavbarTop logo={true} />
         <div className="bg-white border-t-1 border-gray-500 flex gap-6 justify-end items-center px-5 py-3 relative shadow-md">
           <div className="flex gap-8">
             <ColorPicker

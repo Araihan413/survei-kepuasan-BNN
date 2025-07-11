@@ -50,8 +50,8 @@ const Login = () => {
     <>
       <div className="w-full flex flex-row bg-gradasi-biru relative overflow-hidden">
 
-        <span className="inline-block w-60 h-60 absolute -bottom-30 -left-5 border-2 border-white/80 rounded-full bg-slate-50/5"></span>
-        <span className="inline-block w-60 h-60 absolute -bottom-25 -left-15 border-2 border-white/80 rounded-full bg-slate-50/5"></span>
+        <span className="inline-block w-70 h-70 absolute -bottom-30 -left-5 border-1 border-white/70 rounded-full bg-slate-50/5"></span>
+        <span className="inline-block w-70 h-70 absolute -bottom-25 -left-15 border-1 border-white/70 rounded-full bg-slate-50/5"></span>
 
         <div className="w-6/10 flex justify-center items-center gap-4">
           <div className="w-25">

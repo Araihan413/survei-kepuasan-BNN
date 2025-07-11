@@ -13,12 +13,13 @@ import Profile from "./components/pages/profile";
 import Notification from "./components/pages/notification";
 import ForgetPassword from "./components/pages/forgetPassword";
 import NotAuthorized from "./components/pages/notAuthorized";
+import LayoutManageForm from "./components/layout/LayoutManageForm";
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from "./AuthContext";
 import { PrivateRoute } from "./routes/PrivateRoute";
 import { Navigate } from 'react-router-dom';
-
+import { NotificationProvider } from "./components/Elements/NotificationContext";
 
 function App() {
 
@@ -44,17 +45,18 @@ function App() {
       element: <NotAuthorized />,
     },
     {
-      element: <PrivateRoute />,
-      children: [
-        {
-          path: '/survei/kelola',
-          element: <ManageFormSurvey></ManageFormSurvey>
-        },
-      ]
-    },
-    {
       element: < PrivateRoute />,
       children: [
+        {
+          path: '/',
+          element: <LayoutManageForm></LayoutManageForm>,
+          children: [
+            {
+              path: '/survei/kelola',
+              element: <ManageFormSurvey></ManageFormSurvey>
+            },
+          ]
+        },
         {
           path: '/',
           element: <Layout></Layout>,
@@ -89,7 +91,7 @@ function App() {
             },
             {
               path: '/notifikasi',
-              element: <Notification allowedRoles={['admin']}></Notification>
+              element: <Notification></Notification>
             },
           ]
         }
@@ -100,9 +102,11 @@ function App() {
   return (
     <>
       <AuthProvider>
-        <div className='min-h-screen'>
-          <RouterProvider router={router}></RouterProvider>
-        </div>
+        <NotificationProvider>
+          <div className='min-h-screen'>
+            <RouterProvider router={router}></RouterProvider>
+          </div>
+        </NotificationProvider>
         <Toaster position="top-center" reverseOrder={false} />
       </AuthProvider>
     </>
