@@ -18,7 +18,6 @@ export const NotificationProvider = ({ children }) => {
         unreadNotifications: dataNotif.data.filter((notification) => !notification.isOpened).length,
         data: dataNotif.data.map((notification) => ({ notifId: notification.notifId, notifText: notification.notifText, isOpened: notification.isOpened }))
       });
-      console.log(dataNotif.data);
     } catch (error) {
       AlertFailed({ text: error.message });
     }

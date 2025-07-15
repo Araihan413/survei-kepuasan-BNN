@@ -13,7 +13,7 @@ import { PopupCreateSurvey } from "../Fragments/PopupAdd";
 import { AlertSuccess, AlertFailed } from "../Elements/Alert";
 import { useNavigate } from "react-router-dom";
 import CopyLinkButton from "../Elements/CopyLinkButton";
-import { updateAccessToken } from "../utils/UpdateToken";
+import useUpdateAccessToken from "../utils/UpdateToken";
 
 const layoutDataSurvey = [
   { key: "title", label: "Nama", type: "text", accessEdit: true, validation: { required: 'Nama produk wajib diisi' } },
@@ -24,6 +24,7 @@ const layoutDataSurvey = [
 ];
 
 const Survey = () => {
+  const updateAccessToken = useUpdateAccessToken();
   const [openPopupListQuestion, setOpenPopupListQuestion] = useState(false);
   const [allSurveyAndQuestion, setAllSurveyAndQuestion] = useState([]);
   const [toggles, setToggles] = useState({});
@@ -98,15 +99,29 @@ const Survey = () => {
       try {
         const response = await fetch(`${urlApi}/survey/${id}`, {
           method: "PATCH",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify({ isPublished: !toggles[id] }),
         });
-        // ! update token 
-        const newToken = response.headers.get('New-Access-Token');
-        updateAccessToken(newToken);
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
 
         const newData = await response.json();
         if (!response.ok) throw new Error(newData.message || newData.error);
@@ -145,6 +160,7 @@ const Survey = () => {
       try {
         const response = await fetch(`${urlApi}/survey/${id}`, {
           method: "PATCH",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -154,9 +170,22 @@ const Survey = () => {
             description: updatedData.description,
           }),
         });
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
         // ! update token
-        const newToken = response.headers.get('New-Access-Token');
-        updateAccessToken(newToken);
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
 
         if (!response.ok) {
           throw new Error("Gagal update survey");
@@ -164,7 +193,6 @@ const Survey = () => {
         fetchDataSurvey();
         AlertSuccess({ text: 'Data berhasil diedit!' });
       } catch (error) {
-        console.log(error);
         AlertFailed({ text: error.message });
       }
     };
@@ -185,13 +213,27 @@ const Survey = () => {
       try {
         const responses = await fetch(`${urlApi}/survey/${id}`, {
           method: "DELETE",
+          credentials: "include",
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           }
         })
+        if (responses.status === 403 || responses.status === 401) {
+          const resJson = await responses.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
         // ! update token
-        const newToken = responses.headers.get('New-Access-Token');
-        updateAccessToken(newToken);
+        const newToken = responses.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
 
         const dataSurvey = await responses.json()
         if (!responses.ok) throw new Error(dataSurvey.message || dataSurvey.error);

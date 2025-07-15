@@ -9,7 +9,9 @@ import { FaTrashCan } from "react-icons/fa6";
 import { AuthContext } from '../../AuthContext';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import useUpdateAccessToken from '../utils/UpdateToken';
 const PopupCreateSurvey = ({ open, handleCancel, lengthSurvey, onSuccessAdd }) => {
+  const updateAccessToken = useUpdateAccessToken();
   const {
     register,
     handleSubmit,
@@ -37,11 +39,31 @@ const PopupCreateSurvey = ({ open, handleCancel, lengthSurvey, onSuccessAdd }) =
       try {
         const response = await fetch(`${urlApi}/survey`, {
           method: 'POST',
+          credentials: "include",
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify(dataSurvey),
         });
+
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
         if (!response.ok) throw new Error(response.error);
         const data = await response.json();
         onSuccessAdd?.(data.data);
@@ -109,6 +131,7 @@ const PopupCreateSurvey = ({ open, handleCancel, lengthSurvey, onSuccessAdd }) =
 }
 
 const PopupCreateService = ({ open, handleCancel, onSuccessAdd }) => {
+  const updateAccessToken = useUpdateAccessToken();
   const formService = [
     { key: "name", label: "Nama pelayanan", type: "text", isRequired: true, validation: { required: 'Nama pelayana wajib diisi' } },
     { key: "label", label: "Label pelayanan", type: "text", isRequired: true, validation: { required: 'Label pelayana wajib diisi' } },
@@ -135,11 +158,31 @@ const PopupCreateService = ({ open, handleCancel, onSuccessAdd }) => {
       try {
         const response = await fetch(`${urlApi}/service`, {
           method: 'POST',
+          credentials: "include",
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify(dataSurvey),
         });
+
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
         if (!response.ok) throw new Error(response.message || response.error);
         const data = await response.json();
         onSuccessAdd?.(data.data);
@@ -203,6 +246,7 @@ const PopupCreateService = ({ open, handleCancel, onSuccessAdd }) => {
 }
 
 const PopupCreateQuestion = ({ open, surveyId, lengthQuestion, handleClose, onSuccessSumbit }) => {
+  const updateAccessToken = useUpdateAccessToken();
   const [questions, setQuestions] = useState([
     {
       question: "",
@@ -295,14 +339,33 @@ const PopupCreateQuestion = ({ open, surveyId, lengthQuestion, handleClose, onSu
       try {
         const responses = await fetch(`${urlApi}/question`, {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify(dataInput),
         });
+
+        if (responses.status === 403 || responses.status === 401) {
+          const resJson = await responses.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = responses.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
         const dataQuestion = await responses.json();
         if (!responses.ok) throw new Error(dataQuestion.message || dataQuestion.error);
-        console.log(dataQuestion);
         if (responses.ok) {
           onSuccessSumbit();
           AlertSuccess({ text: "Pertanyaan berhasil disimpan!" })

@@ -87,18 +87,19 @@ const AlertNewSurvey = ({ respondentName, date }) => {
 
 const AlertTokenExpired = async ({
   title = 'Ups! Akses Anda Habis',
+  text = 'Silahkan Login Kembali',
   confirmButtonText = 'Oke',
-}) => {
+} = {}) => {
   const result = await MySwal.fire({
     title,
     text,
-    icon: "question",
-    showCancelButton: true,
+    icon: "warning", // bisa diganti dengan "info", "error", dll
     confirmButtonColor: '#d33',
-    cancelButtonColor: '#aaa',
     confirmButtonText,
   });
 
   return result.isConfirmed;
 };
+
+
 export { AlertDelete, AlertSuccess, AlertFailed, AlertNewSurvey, AlertComfirm, AlertTokenExpired };

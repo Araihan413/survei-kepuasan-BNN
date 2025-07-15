@@ -37,7 +37,6 @@ const findQuestions = () => {
 }
 
 const insertQuestion = (newQues) => {
-  console.log("data le",newQues)
   const newQuestion = prisma.question.create({
     data: {
       surveyId: newQues.surveyId,

@@ -82,7 +82,7 @@ const resetPassword = async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'Password berhasil direset',
-      data: resetPasswordLink
+      data: resetPasswordLink,
     })
   } catch (error) {
     res.status(400).json({

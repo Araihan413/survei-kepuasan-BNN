@@ -30,7 +30,6 @@ const Navbar = () => {
       confirmButtonText: "Ya, Logout",
       cancelButtonText: "Batal"
     });
-    console.log(confirmed);
     if (!confirmed) return; // Jangan lanjut kalau user membatalkan
     if (confirmed) {
       logout();

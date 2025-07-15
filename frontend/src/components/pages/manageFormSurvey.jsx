@@ -5,15 +5,15 @@ import { useState, useEffect } from "react";
 import urlApi from "../../api/urlApi";
 import Button from "../Elements/Button";
 import PopupListQuestion from "../Fragments/PopupListQuestion";
-import NavbarTop from "../Fragments/NavbarTop";
 import CopyLinkButton from "../Elements/CopyLinkButton";
 import ColorPicker from "../Elements/ColorPicker";
 import EditOnClickBanner from "../Elements/EditOnClickBanner";
 import EditableTextInformation from "../Elements/EditableTextInformation";
 import { AlertFailed, AlertSuccess } from "../Elements/Alert";
-import { updateAccessToken } from "../utils/UpdateToken";
+import useUpdateAccessToken from "../utils/UpdateToken";
 
 const ManageFormSurvey = () => {
+  const updateAccessToken = useUpdateAccessToken();
   // State management
   const [state, setState] = useState({
     loading: true,
@@ -137,19 +137,33 @@ const ManageFormSurvey = () => {
     try {
       const theme = await fetch(`${urlApi}/themeForm/1`, {
         method: 'PATCH',
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify(dataTheme)
       })
+      if (theme.status === 403 || theme.status === 401) {
+        const resJson = await theme.json();
+
+        // Cek pesan dari backend
+        if (
+          resJson?.error?.includes("token tidak valid") ||
+          resJson?.error?.includes("expired") ||
+          resJson?.error?.includes("Sesi telah berakhir")
+        ) {
+          updateAccessToken(null); // ⬅️ Redirect ke login
+          return;
+        }
+      }
+      // ! update token
+      const newToken = theme.headers.get("New-Access-Token");
+      updateAccessToken(newToken); // update token baru kalau ada
+
       const colorTheme = await theme.json();
       if (!theme.ok) throw new Error(colorTheme.message || colorTheme.error);
       setState(prev => ({ ...prev, changeColorTheme: true }))
-
-      // ! Handle new token if exists
-      const newToken = theme.headers.get('New-Access-Token');
-      updateAccessToken(newToken);
 
       return colorTheme
     } catch (error) {
@@ -171,11 +185,29 @@ const ManageFormSurvey = () => {
     try {
       const response = await fetch(`${urlApi}/survey/update`, {
         method: 'POST',
+        credentials: "include",
         body: formData,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
       });
+
+      if (response.status === 403 || response.status === 401) {
+        const resJson = await response.json();
+
+        // Cek pesan dari backend
+        if (
+          resJson?.error?.includes("token tidak valid") ||
+          resJson?.error?.includes("expired") ||
+          resJson?.error?.includes("Sesi telah berakhir")
+        ) {
+          updateAccessToken(null); // ⬅️ Redirect ke login
+          return;
+        }
+      }
+      // ! update token
+      const newToken = response.headers.get("New-Access-Token");
+      updateAccessToken(newToken); // update token baru kalau ada
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -211,12 +243,7 @@ const ManageFormSurvey = () => {
       setState(prev => ({ ...prev, bannerFile: null }));
       AlertSuccess({ text: 'Perubahan berhasil disimpan' });
 
-      // ! Handle new token if exists
-      const newToken = response.headers.get('New-Access-Token');
-      updateAccessToken(newToken);
-
     } catch (error) {
-      console.error('Error:', error);
       AlertFailed({ text: error.message || 'Terjadi kesalahan saat menyimpan' });
     }
   };

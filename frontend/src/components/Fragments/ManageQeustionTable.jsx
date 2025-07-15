@@ -8,6 +8,7 @@ import { useState, Fragment } from "react";
 import { PopupEditQuestion } from './PopupEdit';
 import { AlertFailed, AlertSuccess } from '../Elements/Alert';
 import urlApi from '../../api/urlApi';
+import useUpdateAccessToken from '../utils/UpdateToken';
 
 
 const ManageQuestionTable = ({ data, header, width = "", onSuccessEdit }) => {
@@ -15,6 +16,7 @@ const ManageQuestionTable = ({ data, header, width = "", onSuccessEdit }) => {
   const [dataDetailQuestion, setDataDetailQuestion] = useState({});
   const [dataToEdit, setDataToEdit] = useState({});
   const [showModalEdit, setShowModalEdit] = useState(false);
+  const updateAccessToken = useUpdateAccessToken();
 
   const layoutDataQuestion = [
     { key: "questionText", label: "Pertanyaan", type: "textArea" },
@@ -80,7 +82,29 @@ const ManageQuestionTable = ({ data, header, width = "", onSuccessEdit }) => {
       try {
         const responses = await fetch(`${urlApi}/question/${id}`, {
           method: "DELETE",
+          credentials: "include",
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
         })
+        if (responses.status === 403 || responses.status === 401) {
+          const resJson = await responses.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = responses.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
+
         const dataQuestion = await responses.json()
         if (!responses.ok) throw new Error(dataQuestion.message || dataQuestion.error);
         AlertSuccess({ text: 'Pertanyaan berhasil dihapus!' });

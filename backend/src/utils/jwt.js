@@ -2,11 +2,11 @@ const jwt = require('jsonwebtoken')
 const admin = require('../admin/admin.repository')
 
 const generateAccessToken = (admin) => {
- return jwt.sign({adminId: admin.adminId, username: admin.username, role: admin.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '12h'})
+ return jwt.sign({adminId: admin.adminId, username: admin.username, role: admin.role}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1m'})
 }
 
 const generateRefreshToken = (admin) => {
-  return jwt.sign({adminId: admin.adminId, username: admin.username, role: admin.role}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '2d'})
+  return jwt.sign({adminId: admin.adminId, username: admin.username, role: admin.role}, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1d'})
 }
 
 // ? untuk meriset password

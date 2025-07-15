@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const themeFormRepository = require('./theme.repository')
+const {verifyToken} = require('../middleware/auth.middleware')
 
 
 router.get('/', async (req, res) => {
@@ -21,7 +22,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:id',verifyToken, async (req, res) => {
   const data = req.body;
   try{
     const id = parseInt(req.params.id);
@@ -41,7 +42,7 @@ router.patch('/:id', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   const data  = req.body;
   try{
     const updateTheme = await themeFormRepository.insertThemeForm(data)

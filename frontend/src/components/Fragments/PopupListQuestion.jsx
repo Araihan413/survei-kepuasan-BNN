@@ -10,9 +10,11 @@ import { IoClose } from "react-icons/io5";
 import { IoMdAddCircle } from "react-icons/io";
 import urlApi from "../../api/urlApi";
 import { useState, useEffect } from 'react';
-
+import useUpdateAccessToken from '../utils/UpdateToken';
 
 const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurveys }) => {
+
+  const updateAccessToken = useUpdateAccessToken();
   const [error, setError] = useState(null);
   const [openActivateQuestion, setOpenActivateQuestion] = useState(false);
   const [listQuestion, setListQuestion] = useState([]);
@@ -70,11 +72,31 @@ const PopupListQuestion = ({ openPopUp, handleClose, dataSurveys, onUpdateSurvey
       try {
         const response = await fetch(`${urlApi}/question/${parseInt(idQuestion)}`, {
           method: 'PATCH',
+          credentials: "include",
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify({ isActive: false })
         });
+
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
         await fetchQuestionBySurveyId(idSurvey);
@@ -189,10 +211,15 @@ const PopupSelectActiveQuestion = ({ open, closePopup, dataQuestion, onSaved }) 
         const response = await fetch(`${urlApi}/question/${idQuestion}`, {
           method: 'PATCH',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify(dataQuestion)
-        })
+        });
+        // ! update token 
+        const newToken = response.headers.get('New-Access-Token');
+        updateAccessToken(newToken);
+
         if (!response.ok) throw new Error(response.error);
       } catch (error) {
         throw error.message;

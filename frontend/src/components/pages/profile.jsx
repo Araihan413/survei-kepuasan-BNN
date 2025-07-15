@@ -7,8 +7,10 @@ import { useForm } from "react-hook-form"
 import { IoIosInformationCircle } from "react-icons/io";
 import { TbEyeClosed } from "react-icons/tb";
 import { FaEye, FaCamera } from "react-icons/fa";
+import useUpdateAccessToken from "../utils/UpdateToken"
 
 const Profile = () => {
+  const updateAccessToken = useUpdateAccessToken();
   const { register, handleSubmit, formState: { errors }, reset, watch } = useForm();
   const [dataAdmin, setDataAdmin] = useState({})
   const [editProfil, setEditProfil] = useState(false)
@@ -78,11 +80,31 @@ const Profile = () => {
     try {
       const response = await fetch(`${urlApi}/admin/${data.adminId}`, {
         method: 'PATCH',
+        credentials: "include",
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify(dataEdit)
       })
+
+      if (response.status === 403 || response.status === 401) {
+        const resJson = await response.json();
+
+        // Cek pesan dari backend
+        if (
+          resJson?.error?.includes("token tidak valid") ||
+          resJson?.error?.includes("expired") ||
+          resJson?.error?.includes("Sesi telah berakhir")
+        ) {
+          updateAccessToken(null); // ⬅️ Redirect ke login
+          return;
+        }
+      }
+      // ! update token
+      const newToken = response.headers.get("New-Access-Token");
+      updateAccessToken(newToken); // update token baru kalau ada
+
       const admin = await response.json()
       if (!response.ok) throw new Error(admin.message || admin.error)
       if (response.ok) {
@@ -159,13 +181,13 @@ const Profile = () => {
   }
 
   const handleSubmitChangePassword = async (data) => {
-    const token = localStorage.getItem("accessToken");
     try {
       const response = await fetch(`${urlApi}/auth/reset-password`, {
         method: 'POST',
+        credentials: "include",
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify({
           oldPassword: data.oldPassword,
@@ -173,13 +195,30 @@ const Profile = () => {
           confirmPassword: data.confirmPassword
         }),
       });
+
+      if (response.status === 403 || response.status === 401) {
+        const resJson = await response.json();
+
+        // Cek pesan dari backend
+        if (
+          resJson?.error?.includes("token tidak valid") ||
+          resJson?.error?.includes("expired") ||
+          resJson?.error?.includes("Sesi telah berakhir")
+        ) {
+          updateAccessToken(null); // ⬅️ Redirect ke login
+          return;
+        }
+      }
+      // ! update token
+      const newToken = response.headers.get("New-Access-Token");
+      updateAccessToken(newToken); // update token baru kalau ada
+
       const res = await response.json();
       if (!response.ok) throw new Error(res.message || res.error);
       AlertSuccess({ text: "Password berhasil diganti" });
       reset();
       setShowChangePassword(false);
     } catch (error) {
-      console.log(error);
       AlertFailed({ text: error.message });
     }
   };

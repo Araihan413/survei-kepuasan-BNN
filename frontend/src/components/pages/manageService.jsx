@@ -6,11 +6,12 @@ import { PopupCreateService } from "../Fragments/PopupAdd";
 import PopupEdit from "../Fragments/PopupEdit";
 import PopupDetail from "../Fragments/PopupDetail";
 import { AlertFailed, AlertSuccess } from "../Elements/Alert";
+import useUpdateAccessToken from "../utils/UpdateToken";
 
 
 const ManageService = () => {
+  const updateAccessToken = useUpdateAccessToken();
   const [listService, setListService] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [showPopupAddService, setShowPopupAddService] = useState(false);
   const [showPopupEdit, setShowPopupEdit] = useState(false);
   const [showPopupDetail, setShowPopupDetail] = useState(false);
@@ -81,8 +82,10 @@ const ManageService = () => {
       try {
         const response = await fetch(`${urlApi}/service/${id}`, {
           method: "PATCH",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           },
           body: JSON.stringify({
             name: updatedData.name,
@@ -90,10 +93,30 @@ const ManageService = () => {
             description: updatedData.description,
           }),
         });
+
+        // Tangani token expired / refresh gagal
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
         const newData = await response.json();
         if (!response.ok) {
           throw new Error(newData.message || newData.error);
         }
+
         fetchDataService();
         AlertSuccess({ text: 'Data berhasil diedit!' });
       } catch (error) {
@@ -113,7 +136,28 @@ const ManageService = () => {
       try {
         const response = await fetch(`${urlApi}/service/${id}`, {
           method: "DELETE",
+          credentials: "include",
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
         });
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
+
         const newData = await response.json();
         if (!response.ok) {
           throw new Error(newData.message || newData.error);

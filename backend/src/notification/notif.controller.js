@@ -1,6 +1,7 @@
 const notificationService = require("./notif.service");
 const express = require("express");
 const router = express.Router();
+const {verifyToken} = require('../middleware/auth.middleware')
 
 router.get("/", async (req, res) => {
   try {
@@ -25,8 +26,9 @@ router.post("/", async (req, res) => {
     const notif = await notificationService.createNotification(data);
     res.status(201).json({
       status: "success",
-      message: "Data notifikasi berhasil di tambahkan",
+      message: "Notifikasi berhasil di tambahkan",
       data: notif,
+      newAccessToken: res.get('New-Access-Token')
     });
   } catch (error) {
     res.status(400).json({
@@ -37,13 +39,13 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id",verifyToken, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const notif = await notificationService.deleteNotificationById(id);
     res.status(200).json({
       status: "success",
-      message: "Data notifikasi berhasil dihapus",
+      message: "Notifikasi berhasil dihapus",
       data: notif,
     });
   } catch (error) {
@@ -64,6 +66,7 @@ router.patch("/:id", async (req, res) => {
       status: "success",
       message: "Data notifikasi berhasil diupdate",
       data: notif,
+      newAccessToken: res.get('New-Access-Token')
     });
   } catch (error) {
     res.status(400).json({

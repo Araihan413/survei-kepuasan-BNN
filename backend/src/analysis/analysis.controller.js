@@ -1,8 +1,6 @@
 const analysisService = require('./analysis.service')
 const express = require('express');
 const router = express.Router();
-const {verifyToken} = require('../middleware/auth.middleware')
-
 
 router.get('/:id', async (req, res) => {
   const surveyId = req.params.id
@@ -13,7 +11,6 @@ router.get('/:id', async (req, res) => {
       status: 'success',
       message: 'Data analisis berhasil diambil',
       data: data,
-      newAccessToken: res.get('New-Access-Token')
     })
 
   }catch (error) {

@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors')
 const http = require('http');
+const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
 const questionController = require('./questions/question.controller')
 const adminController = require('./admin/admin.controller')
@@ -19,7 +20,8 @@ const notifController = require('./notification/notif.controller')
 const themeFormController = require('./ThemeForm/theme.controller')
 
 const app = express();
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
+app.use(cookieParser());
 // http://localhost:2100/images/default-avatar.png //? contoh request image profile
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -44,7 +46,6 @@ io.on('connection', (socket) => {
       type: 'new-response',
       data: data
     });
-    console.log("data baru websocket")
   });
 
   socket.on('disconnect', () => {
@@ -53,7 +54,11 @@ io.on('connection', (socket) => {
 });
 
 dotenv.config()
-app.use(cors())
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  exposedHeaders: ['New-Access-Token']      // agar bisa akses token refres lewat header     
+}));
 const PORT = process.env.PORT;
 app.use(express.json())
 app.use('/api/dashboard', dashboardController) //!

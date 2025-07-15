@@ -13,7 +13,6 @@ router.get('/:id', async (req, res) => {
       status: 'success',
       message: 'data question berhasil diambil',
       data: questionById,
-      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -60,7 +59,7 @@ router.get('/', async (req, res) => {
 })
 
 // ! create question
-router.post('/',  async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const data = req.body;
     const {surveyId, adminId, questionsData} = data
@@ -70,7 +69,6 @@ router.post('/',  async (req, res) => {
       status: 'success',
       message: 'data question berhasil ditambahkan',
       data: newQuestion,
-      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
 
@@ -83,7 +81,7 @@ router.post('/',  async (req, res) => {
 })
 
 // ! update question and option
-router.patch('/', async (req, res) => {
+router.patch('/', verifyToken, async (req, res) => {
   const { questionData, optionChanges } = req.body;
   try{
     const updateSurvey = await questionService.updateQuestionAndOption(questionData, optionChanges)
@@ -92,7 +90,6 @@ router.patch('/', async (req, res) => {
       status: 'success',
       message: 'question berhasil diupdate',
       data: updateSurvey,
-      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -104,7 +101,7 @@ router.patch('/', async (req, res) => {
 })
 
 // ! update question
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', verifyToken, async (req, res) => {
   
   try{
     const id = parseInt(req.params.id);
@@ -115,7 +112,6 @@ router.patch('/:id', async (req, res) => {
       status: 'success',
       message: 'question berhasil diupdate',
       data: updateSurvey,
-      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({
@@ -127,7 +123,7 @@ router.patch('/:id', async (req, res) => {
 })
 
 // ! delete question
-router.delete('/:id',  async (req, res) => {
+router.delete('/:id', verifyToken,  async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (typeof id !== 'number') throw Error('id harus angka')
@@ -136,7 +132,6 @@ router.delete('/:id',  async (req, res) => {
       status: 'success',
       message: 'question berhasil dihapus',
       data: question,
-      newAccessToken: res.get('New-Access-Token')
     })
   } catch (error) {
     res.status(400).json({

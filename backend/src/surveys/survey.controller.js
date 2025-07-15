@@ -24,7 +24,6 @@ router.get('/questions', async (req, res) => {
         status: 'success',
         message: 'data survey berhasil diambil',
         data: surveys,
-        newAccessToken: res.get('New-Access-Token')
       })
   } catch (error) {
     res.status(400).json({
@@ -45,7 +44,6 @@ router.get('/:id/questions', async (req, res) => {
         status: 'success',
         message: 'data survey berhasil diambil',
         data: surveys,
-        newAccessToken: res.get('New-Access-Token')
       })
     
   } catch (error) {
@@ -66,8 +64,7 @@ router.get('/', async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'data survey berhasil diambil',
-      data: survey,
-      newAccessToken: res.get('New-Access-Token')
+      data: survey
     })
 
   }catch (error) {
@@ -88,8 +85,7 @@ router.get('/:id', async (req, res) => {
     res.status(200).json({
       status: 'success',
       message: 'data survey berhasil diambil',
-      data: surveyById,
-      newAccessToken: res.get('New-Access-Token')
+      data: surveyById
     })
 
   }catch (error) {
@@ -102,7 +98,7 @@ router.get('/:id', async (req, res) => {
 })
 
 // ! create survey
-router.post('/',  async (req, res) => {
+router.post('/', verifyToken,  async (req, res) => {
   try {
     const dataSurvey = req.body
     const newSurvey = await surveyService.insertSurvey(dataSurvey)
@@ -110,8 +106,7 @@ router.post('/',  async (req, res) => {
     res.status(201).json({
       status: 'success',
       message: 'Survei berhasil dibuat',
-      data: newSurvey,
-      newAccessToken: res.get('New-Access-Token')
+      data: newSurvey
     })
   }catch (error) {
     res.status(400).json({
@@ -123,15 +118,14 @@ router.post('/',  async (req, res) => {
 })
 
 // ! delete survey
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try{
     const surveyId = parseInt(req.params.id);
     const deleteSurvey = await surveyService.deleteSurveyById(surveyId)
     res.status(200).json({
       status: 'success',
       message: 'data survey berhasil dihapus',
-      deleteSurveyId : deleteSurvey,
-      newAccessToken: res.get('New-Access-Token')
+      deleteSurveyId : deleteSurvey
     })
   }catch (error) {
     res.status(400).json({
@@ -143,7 +137,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 // ! update survey
-router.patch('/:id',  async (req, res) => {
+router.patch('/:id', verifyToken,  async (req, res) => {
   try {
     const surveyId = req.params.id
     const dataSurvey = req.body
@@ -151,8 +145,7 @@ router.patch('/:id',  async (req, res) => {
     res.status(200).json({
       status: 'success',
       message : "Survey berhasil di update",
-      data: updateDataSurvey,
-      newAccessToken: res.get('New-Access-Token')
+      data: updateDataSurvey
     })
   } catch (error) {
     res.status(400).json({
@@ -163,7 +156,7 @@ router.patch('/:id',  async (req, res) => {
   }
 })
 
-router.post('/update', upload.single('banner'), async (req, res) => {
+router.post('/update', verifyToken, upload.single('banner'), async (req, res) => {
   try {
     const { surveyId, textInformation } = req.body;
     const id = Number(surveyId);
@@ -175,8 +168,7 @@ router.post('/update', upload.single('banner'), async (req, res) => {
     res.status(200).json({
       status: 'success',
       message : "Survey berhasil di update",
-      data: uploadBenner,
-      newAccessToken: res.get('New-Access-Token')
+      data: uploadBenner
     })
   } catch (error) {
     res.status(400).json({

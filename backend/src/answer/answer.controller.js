@@ -1,5 +1,4 @@
 const answerService = require("./answer.service");
-const { verifyToken } = require("../middleware/auth.middleware");
 const express = require("express");
 const router = express.Router();
 
@@ -9,7 +8,7 @@ router.post('/', async (req, res) => {
     const createAnswer = await answerService.createManyAnswerAndRespondent(data);
     res.status(201).json({
       status: "success",
-      message: "Data answer berhasil di tambahkan",
+      message: "Hasil Survei berhasil di tambahkan",
       data: createAnswer,
     });
   } catch (error) { 

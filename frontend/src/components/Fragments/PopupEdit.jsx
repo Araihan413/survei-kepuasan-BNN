@@ -7,10 +7,10 @@ import { AlertFailed, AlertSuccess } from '../Elements/Alert';
 import urlApi from '../../api/urlApi';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
+import useUpdateAccessToken from '../utils/UpdateToken';
 
 const PopupEdit = ({ dataPopup, open, handleClose, layoutForm, onSubmitSuccess }) => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
-
   useEffect(() => {
     if (dataPopup && Object.keys(dataPopup).length > 0) {
       const defaultValues = layoutForm.reduce((acc, item) => {
@@ -86,6 +86,7 @@ export const PopupEditQuestion = ({
   initialQuestion,
   onSuccessSubmit
 }) => {
+  const updateAccessToken = useUpdateAccessToken();
   const [originalQuestion, setOriginalQuestion] = useState(initialQuestion);
   const [question, setQuestion] = useState({
     ...initialQuestion,
@@ -266,9 +267,30 @@ export const PopupEditQuestion = ({
       try {
         const response = await fetch(`${urlApi}/question`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
           body: JSON.stringify(payload)
         });
+
+        if (response.status === 403 || response.status === 401) {
+          const resJson = await response.json();
+
+          // Cek pesan dari backend
+          if (
+            resJson?.error?.includes("token tidak valid") ||
+            resJson?.error?.includes("expired") ||
+            resJson?.error?.includes("Sesi telah berakhir")
+          ) {
+            updateAccessToken(null); // ⬅️ Redirect ke login
+            return;
+          }
+        }
+        // ! update token
+        const newToken = response.headers.get("New-Access-Token");
+        updateAccessToken(newToken); // update token baru kalau ada
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || data.error);

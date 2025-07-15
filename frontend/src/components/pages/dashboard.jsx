@@ -40,7 +40,6 @@ const Dashborad = () => {
   const { socket } = useOutletContext();
 
   const refreshDashboardData = useCallback(async () => {
-    console.log("Refreshing dashboard data...");
     try {
       await Promise.all([
         recentRespondents(filterRespondent),
@@ -48,7 +47,6 @@ const Dashborad = () => {
         countRespondent(countRespondentFilter),
       ]);
     } catch (error) {
-      console.error("Failed to refresh data:", error);
       AlertFailed({ text: "Gagal memuat data terbaru" });
     } finally {
     }
@@ -196,7 +194,6 @@ const Dashborad = () => {
   // Setup WebSocket listeners
   useEffect(() => {
     const onConnect = () => {
-      console.log("WebSocket connected");
       setIsSocketConnected(true);
       socket.emit('register-admin');
     };

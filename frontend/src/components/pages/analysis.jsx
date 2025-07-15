@@ -182,7 +182,6 @@ const Analysis = () => {
         responsesOption: formatted
       };
     });
-    console.log("bismillah", result)
     return result
 
   };
@@ -246,7 +245,6 @@ const Analysis = () => {
           resultData.surveyTitle ?? "-"
         );
         setDataQuestionTableText(dataQuestionTableText);
-        console.log("dataQuestionTableText", dataQuestionTableText);
       } else {
         setDataQuestionTableText({});
       }
@@ -256,7 +254,6 @@ const Analysis = () => {
         if (resultData.questionOptionAnalysis?.length > 0) {
           const dataQuestionOpsi = await convertOpsiAnalysis(resultData.questionOptionAnalysis);
           setDataQuestionOpsi(dataQuestionOpsi);
-          console.log(dataQuestionOpsi);
         } else {
           setDataQuestionOpsi([]);
         }
@@ -321,7 +318,6 @@ const Analysis = () => {
         analysisSurvey(surveyActive, selectedFilter)
       ]);
     } catch (error) {
-      console.error("Failed to refresh data:", error);
       AlertFailed({ text: "Gagal memuat data terbaru" });
     } finally {
     }

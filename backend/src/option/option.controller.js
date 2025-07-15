@@ -1,21 +1,22 @@
 const optionReository = require('./option.repository')
 const express = require("express");
 const router = express.Router();
+const {verifyToken} = require('../middleware/auth.middleware')
 
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const data = req.body
     const newOption = await optionReository.insertManyOption(data)
-    res.status(200).json({
+    res.status(201).json({
       status: 'success',
-      message: 'Data option berhasil diambil',
+      message: 'Option berhasil ditambahkan',
       data: newOption
     })
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 
@@ -33,8 +34,8 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Something went wrong on the server",
-      error: error.message
+      message: error.message,
+      error: error
     })
   }
 })
